@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 public class ScreenWrapper : MonoBehaviour
 {
@@ -6,19 +7,33 @@ public class ScreenWrapper : MonoBehaviour
     [SerializeField]
     private bool clamped = false;
     [SerializeField]
-    private bool wrapX;
+    private bool wrapX = true;
     [SerializeField]
-    private bool wrapY;
+    private bool wrapY = false;
+    internal Vector3 m_ScreenPosition
+    {
+        get
+        {
+            return mainCamera.WorldToScreenPoint(transform.position);
+        }
+    }
 
+    internal Vector3 m_ScreenBounds
+    {
+        get
+        {
+            return new Vector3(Screen.width, Screen.height, 0);
+        }
+    }
     private SpriteRenderer m_SpriteRenderer;
-    private int m_SpriteWidth;
-    private int m_SpriteHeight;
+    internal int m_SpriteWidth;
+    internal int m_SpriteHeight;
 
     void Start()
     {
         m_SpriteRenderer = GetComponent<SpriteRenderer>();
         m_SpriteWidth = m_SpriteRenderer.sprite.texture.width;
-        m_SpriteHeight = m_SpriteRenderer.sprite.texture.height;
+        m_SpriteHeight = m_SpriteRenderer.sprite.texture.height; 
         mainCamera = Camera.main;
     }
 
@@ -65,5 +80,15 @@ public class ScreenWrapper : MonoBehaviour
             screenPosition.y = Mathf.Clamp(screenPosition.y, m_SpriteHeight, Screen.height - m_SpriteHeight + 2);
         }
         transform.position = mainCamera.ScreenToWorldPoint(screenPosition);
+    }
+
+    public bool OnScreen()
+    {
+        Vector3 screenPosition = mainCamera.WorldToScreenPoint(transform.position);
+        if (screenPosition.x > 0 && screenPosition.x < Screen.width && screenPosition.y > 0 && screenPosition.y < Screen.height)
+        {
+            return true;
+        }
+        return false;
     }
 }

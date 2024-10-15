@@ -1,11 +1,19 @@
 using System.Collections;
 using JetBrains.Annotations;
-using Unity.IO.LowLevel.Unsafe;
-using Unity.VisualScripting;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
+using Random = UnityEngine.Random;
 
 public class BaseEnemy : Plane
 {
+    [SerializeField]
+    protected enum EnemyState
+    {
+        Spawning,
+        Active,
+        Dead
+    }
     [SerializeField]
     protected GameObject m_Target;
     [SerializeField][CanBeNull]
@@ -15,11 +23,14 @@ public class BaseEnemy : Plane
     protected GameObject[] m_PowerUp;
     [SerializeField]
     protected int m_DropRate = 10;
-    protected void Start()
+    protected ScreenWrapper m_ScreenWrapper;
+    public virtual void Start()
     {
         m_Rb = GetComponent<Rigidbody2D>();
+        m_ScreenWrapper = GetComponent<ScreenWrapper>();
+        m_Collider = GetComponent<BoxCollider2D>();
         m_Target = GameObject.Find("Player");
-        m_Speed = 1 + (GameManager.Instance.m_Wave / 4);
+        m_Speed = 1f + (GameManager.Instance.m_Wave / 4f);
     }
 
     protected void PowerUp()
@@ -30,12 +41,22 @@ public class BaseEnemy : Plane
         }
     }
 
-    void OnDestroy()
+
+    protected IEnumerator MoveOnScreen()
     {
-        PowerUp();
+        while (!m_ScreenWrapper.OnScreen())
+        {
+            transform.position = Vector2.Lerp(transform.position, new Vector2(transform.position.x, m_ScreenWrapper.m_ScreenBounds.y), Time.deltaTime);
+            yield return null;
+        }
+    }
+    
+    protected void OnDestroy()
+    {
         if (m_ExplosionFX != null)
         {
             Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
         }
+        PowerUp();
     }
 }

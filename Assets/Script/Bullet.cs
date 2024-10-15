@@ -4,13 +4,15 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    //grab the damage from the plane class
     [SerializeField]
     internal int b_Damage;
     [SerializeField]
     internal int b_Speed = 10;
     [SerializeField]
     internal float b_LifeTime = 5;
+    [SerializeField]
+    internal GameObject owner;
+    
 
 
     void Start()
@@ -24,14 +26,19 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.gameObject.CompareTag("Player"))
+        Debug.Log("Collided with: " + other.gameObject.name);
+        if (other.gameObject.CompareTag("Player") && other.gameObject != owner)
         {
             other.gameObject.GetComponent<Plane>().TakeDamage(b_Damage);
+            SpriteRenderer playerSprite = other.gameObject.GetComponent<SpriteRenderer>();
+            other.gameObject.GetComponent<Plane>().StartCoroutine(other.gameObject.GetComponent<Plane>().Flash(playerSprite));
             Destroy(gameObject);
         }
-        if (other.gameObject.CompareTag("Enemy"))
+        if (other.gameObject.CompareTag("Enemy") && other.gameObject != owner)
         {
             other.gameObject.GetComponent<Plane>().TakeDamage(b_Damage);
+            SpriteRenderer enemySprite = other.gameObject.GetComponent<SpriteRenderer>();
+            other.gameObject.GetComponent<Plane>().StartCoroutine(other.gameObject.GetComponent<Plane>().Flash(enemySprite));
             Destroy(gameObject);
         }
     }

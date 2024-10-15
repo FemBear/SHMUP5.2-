@@ -40,6 +40,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "MegaBuster",
+                    "type": "Button",
+                    "id": "51699f38-4a77-4de5-96e2-c267a622c650",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -68,7 +77,7 @@
                 {
                     "name": "left",
                     "id": "cc15d5f3-d36e-444a-bc9e-3265a8029d32",
-                    "path": "<Keyboard>/d",
+                    "path": "<Keyboard>/a",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -90,7 +99,7 @@
                 {
                     "name": "right",
                     "id": "7a61c95a-b6d5-4a85-8884-5b09cd4ead4e",
-                    "path": "<Keyboard>/a",
+                    "path": "<Keyboard>/d",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -161,6 +170,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Pauze",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0001ab59-3fd6-4c27-9650-4539019e0e65",
+                    "path": "<Keyboard>/z",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MegaBuster",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8c289a63-5e68-448a-b6a5-eab268650059",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MegaBuster",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

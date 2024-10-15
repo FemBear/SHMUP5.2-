@@ -1,22 +1,22 @@
 using System.Collections;
-using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
-
 public class Plane : MonoBehaviour
 {
     [Header("Plane Settings")]
     [SerializeField]
     protected int m_Health = 3;
     [SerializeField]
-    protected int m_Speed = 5;
+    protected float m_Speed = 5;
     [SerializeField]
     protected float m_FireRate = 0.15f;
     [SerializeField]
     protected float m_CanFire = 0.0f;
+    protected BoxCollider2D m_Collider;
     [SerializeField]
     protected int padding = 1;
+    [CanBeNull]
+    protected Transform m_BulletSpawn;
     protected Rigidbody2D m_Rb;
     [SerializeField]
     [Header("Bullet Settings")]
@@ -27,8 +27,6 @@ public class Plane : MonoBehaviour
     internal int m_BulletSpeed = 10;
     [SerializeField]
     internal float m_LifeTime = 5;
-
-
      public virtual void Update()
     {
         FireRate();
@@ -45,10 +43,11 @@ public class Plane : MonoBehaviour
 
     virtual protected void Fire()
     {
-        if (m_CanFire <= 0)
+        if (m_CanFire <= 0 && m_BulletSpawn != null)
         {
             m_CanFire = m_FireRate;
-            GameObject bullet = Instantiate(m_Bullet, transform.position, Quaternion.identity);
+            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, Quaternion.identity);
+            bullet.GetComponent<Bullet>().owner = gameObject;
             bullet.GetComponent<Bullet>().b_Damage = m_Damage;
             bullet.GetComponent<Bullet>().b_Speed = m_BulletSpeed;
             bullet.GetComponent<Bullet>().b_LifeTime = m_LifeTime;
@@ -65,5 +64,17 @@ public class Plane : MonoBehaviour
         {
             m_CanFire = 0;
         }
+    }
+    public IEnumerator Flash(SpriteRenderer sprite)
+    {
+        m_Collider.enabled = false;
+        for (int i = 0; i < 3; i++)
+        {
+            sprite.enabled = false;
+            yield return new WaitForSeconds(0.1f);
+            sprite.enabled = false;
+            yield return new WaitForSeconds(0.1f);
+        }
+        m_Collider.enabled = true;
     }
 }

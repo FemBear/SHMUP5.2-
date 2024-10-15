@@ -62,6 +62,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MegaBuster"",
+                    ""type"": ""Button"",
+                    ""id"": ""51699f38-4a77-4de5-96e2-c267a622c650"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -90,7 +99,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""left"",
                     ""id"": ""cc15d5f3-d36e-444a-bc9e-3265a8029d32"",
-                    ""path"": ""<Keyboard>/d"",
+                    ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -112,7 +121,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""right"",
                     ""id"": ""7a61c95a-b6d5-4a85-8884-5b09cd4ead4e"",
-                    ""path"": ""<Keyboard>/a"",
+                    ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -185,6 +194,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Pauze"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0001ab59-3fd6-4c27-9650-4539019e0e65"",
+                    ""path"": ""<Keyboard>/z"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MegaBuster"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8c289a63-5e68-448a-b6a5-eab268650059"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MegaBuster"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -225,6 +256,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_WASD = m_Player.FindAction("WASD", throwIfNotFound: true);
         m_Player_Shoot = m_Player.FindAction("Shoot", throwIfNotFound: true);
         m_Player_Pauze = m_Player.FindAction("Pauze", throwIfNotFound: true);
+        m_Player_MegaBuster = m_Player.FindAction("MegaBuster", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Newaction = m_UI.FindAction("New action", throwIfNotFound: true);
@@ -293,6 +325,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_WASD;
     private readonly InputAction m_Player_Shoot;
     private readonly InputAction m_Player_Pauze;
+    private readonly InputAction m_Player_MegaBuster;
     public struct PlayerActions
     {
         private @PlayerControls m_Wrapper;
@@ -301,6 +334,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @WASD => m_Wrapper.m_Player_WASD;
         public InputAction @Shoot => m_Wrapper.m_Player_Shoot;
         public InputAction @Pauze => m_Wrapper.m_Player_Pauze;
+        public InputAction @MegaBuster => m_Wrapper.m_Player_MegaBuster;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -322,6 +356,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Pauze.started += instance.OnPauze;
             @Pauze.performed += instance.OnPauze;
             @Pauze.canceled += instance.OnPauze;
+            @MegaBuster.started += instance.OnMegaBuster;
+            @MegaBuster.performed += instance.OnMegaBuster;
+            @MegaBuster.canceled += instance.OnMegaBuster;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -338,6 +375,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Pauze.started -= instance.OnPauze;
             @Pauze.performed -= instance.OnPauze;
             @Pauze.canceled -= instance.OnPauze;
+            @MegaBuster.started -= instance.OnMegaBuster;
+            @MegaBuster.performed -= instance.OnMegaBuster;
+            @MegaBuster.canceled -= instance.OnMegaBuster;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -407,6 +447,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnWASD(InputAction.CallbackContext context);
         void OnShoot(InputAction.CallbackContext context);
         void OnPauze(InputAction.CallbackContext context);
+        void OnMegaBuster(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
