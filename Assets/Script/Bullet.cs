@@ -11,8 +11,8 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     internal float b_LifeTime = 5;
     [SerializeField]
-    internal GameObject owner;
-    
+    internal GameObject b_owner;
+
 
 
     void Start()
@@ -24,21 +24,25 @@ public class Bullet : MonoBehaviour
         transform.Translate(Vector2.up * Time.deltaTime * b_Speed);
     }
 
+    internal void SetBullet(GameObject owner, int damage, int speed, float lifeTime)
+    {
+        this.b_owner = owner;
+        b_Damage = damage;
+        b_Speed = speed;
+        b_LifeTime = lifeTime;
+    }
+
     private void OnCollisionEnter2D(Collision2D other)
     {
         Debug.Log("Collided with: " + other.gameObject.name);
-        if (other.gameObject.CompareTag("Player") && other.gameObject != owner)
+        if (other.gameObject.CompareTag("Player") && other.gameObject != b_owner)
         {
-            other.gameObject.GetComponent<Plane>().TakeDamage(b_Damage);
-            SpriteRenderer playerSprite = other.gameObject.GetComponent<SpriteRenderer>();
-            other.gameObject.GetComponent<Plane>().StartCoroutine(other.gameObject.GetComponent<Plane>().Flash(playerSprite));
+            other.gameObject.GetComponent<Player>().TakeDamage(b_Damage);
             Destroy(gameObject);
         }
-        if (other.gameObject.CompareTag("Enemy") && other.gameObject != owner)
+        if (other.gameObject.CompareTag("Enemy") && other.gameObject != b_owner)
         {
-            other.gameObject.GetComponent<Plane>().TakeDamage(b_Damage);
-            SpriteRenderer enemySprite = other.gameObject.GetComponent<SpriteRenderer>();
-            other.gameObject.GetComponent<Plane>().StartCoroutine(other.gameObject.GetComponent<Plane>().Flash(enemySprite));
+            other.gameObject.GetComponent<BaseEnemy>().TakeDamage(b_Damage);
             Destroy(gameObject);
         }
     }

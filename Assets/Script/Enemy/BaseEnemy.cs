@@ -14,10 +14,14 @@ public class BaseEnemy : Plane
         Active,
         Dead
     }
+    protected EnemyState m_EnemyState;
+    int m_Down = 5;
     [SerializeField]
     protected GameObject m_Target;
     [SerializeField][CanBeNull]
     protected GameObject m_ExplosionFX;
+    [SerializeField]
+    protected int m_Score = 10;
     [Header("PowerUp Settings")]
     [SerializeField][CanBeNull]
     protected GameObject[] m_PowerUp;
@@ -29,8 +33,10 @@ public class BaseEnemy : Plane
         m_Rb = GetComponent<Rigidbody2D>();
         m_ScreenWrapper = GetComponent<ScreenWrapper>();
         m_Collider = GetComponent<BoxCollider2D>();
+        m_SpriteRenderer = GetComponent<SpriteRenderer>();
         m_Target = GameObject.Find("Player");
         m_Speed = 1f + (GameManager.Instance.m_Wave / 4f);
+        transform.position = Vector2.Lerp(transform.position, new Vector2(transform.position.x, transform.position.y - m_Down), Time.deltaTime);
     }
 
     protected void PowerUp()
@@ -41,22 +47,18 @@ public class BaseEnemy : Plane
         }
     }
 
-
-    protected IEnumerator MoveOnScreen()
+    private void AddScore()
     {
-        while (!m_ScreenWrapper.OnScreen())
-        {
-            transform.position = Vector2.Lerp(transform.position, new Vector2(transform.position.x, m_ScreenWrapper.m_ScreenBounds.y), Time.deltaTime);
-            yield return null;
-        }
+        GameManager.Instance.m_Score += m_Score;
     }
-    
+
     protected void OnDestroy()
     {
         if (m_ExplosionFX != null)
         {
             Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
         }
+        AddScore();
         PowerUp();
     }
 }

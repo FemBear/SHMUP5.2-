@@ -81,14 +81,4 @@ public class ScreenWrapper : MonoBehaviour
         }
         transform.position = mainCamera.ScreenToWorldPoint(screenPosition);
     }
-
-    public bool OnScreen()
-    {
-        Vector3 screenPosition = mainCamera.WorldToScreenPoint(transform.position);
-        if (screenPosition.x > 0 && screenPosition.x < Screen.width && screenPosition.y > 0 && screenPosition.y < Screen.height)
-        {
-            return true;
-        }
-        return false;
-    }
 }

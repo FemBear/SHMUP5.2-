@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 using UnityEngine;
 public class Plane : MonoBehaviour
 {
@@ -15,6 +17,13 @@ public class Plane : MonoBehaviour
     protected BoxCollider2D m_Collider;
     [SerializeField]
     protected int padding = 1;
+    [SerializeField]
+    protected bool isInvulnerable = false;
+    [SerializeField]
+    protected int m_iFrames = 1;
+    [SerializeField]
+    protected float m_iFrameDuration = 0.1f;
+
     [CanBeNull]
     protected Transform m_BulletSpawn;
     protected Rigidbody2D m_Rb;
@@ -27,34 +36,43 @@ public class Plane : MonoBehaviour
     internal int m_BulletSpeed = 10;
     [SerializeField]
     internal float m_LifeTime = 5;
-     public virtual void Update()
+    protected SpriteRenderer m_SpriteRenderer;
+    public virtual void Update()
     {
         FireRate();
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            StartCoroutine(Invulnerability(m_iFrames, m_iFrameDuration));
+        }
     }
 
     internal void TakeDamage(int damage)
     {
-        m_Health -= damage;
-        if (m_Health <= 0)
+        if (!isInvulnerable)
         {
-            Destroy(gameObject);
+            m_Health -= damage;
+            if (m_Health <= 0)
+            {
+                Destroy(gameObject);
+            }
+            StartCoroutine(Invulnerability(m_iFrames, m_iFrameDuration));
         }
     }
 
-    virtual protected void Fire()
+    public virtual void Fire()
     {
         if (m_CanFire <= 0 && m_BulletSpawn != null)
         {
             m_CanFire = m_FireRate;
             GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, Quaternion.identity);
-            bullet.GetComponent<Bullet>().owner = gameObject;
+            bullet.GetComponent<Bullet>().b_owner = gameObject;
             bullet.GetComponent<Bullet>().b_Damage = m_Damage;
             bullet.GetComponent<Bullet>().b_Speed = m_BulletSpeed;
             bullet.GetComponent<Bullet>().b_LifeTime = m_LifeTime;
         }
     }
 
-    protected void FireRate()
+    protected virtual void FireRate()
     {
         if (m_CanFire > 0)
         {
@@ -65,16 +83,18 @@ public class Plane : MonoBehaviour
             m_CanFire = 0;
         }
     }
-    public IEnumerator Flash(SpriteRenderer sprite)
+
+    protected virtual IEnumerator Invulnerability(int iFrames, float iFrameDuration)
     {
-        m_Collider.enabled = false;
-        for (int i = 0; i < 3; i++)
+        isInvulnerable = true;
+        for (int i = 0; i < iFrames; i++)
         {
-            sprite.enabled = false;
-            yield return new WaitForSeconds(0.1f);
-            sprite.enabled = false;
-            yield return new WaitForSeconds(0.1f);
+            m_SpriteRenderer.enabled = false;
+            yield return new WaitForSeconds(iFrameDuration);
+            m_SpriteRenderer.enabled = true;
+            yield return new WaitForSeconds(iFrameDuration);
         }
-        m_Collider.enabled = true;
+        isInvulnerable = false;
     }
 }
+

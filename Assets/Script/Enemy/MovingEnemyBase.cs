@@ -1,14 +1,15 @@
 using UnityEngine;
 using System.Collections;
-using System.Numerics;
 using Vector2 = UnityEngine.Vector2;
 
 
 public class MovingEnemyBase : BaseEnemy
 {
-    public Vector2 m_screenSpace;
-    public Vector2 m_enemyPosition;
-    public float m_timer = 1.0f;
+    private Vector2 m_screenSpace;
+    private Vector2 m_enemyPosition;
+    private float m_timer = 1.0f;
+    [SerializeField]
+    float m_SpeedY = 1.0f;
 
     private EnemyState m_enemyState;
 
@@ -16,9 +17,8 @@ public class MovingEnemyBase : BaseEnemy
     {
         base.Start();
         m_enemyPosition = transform.position;
-        m_screenSpace = new Vector2(Screen.width, Screen.height);
+        m_screenSpace = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
         m_enemyState = EnemyState.Spawning;
-
 
         // Ensure m_Target is assigned
         if (m_Target == null)
@@ -39,17 +39,16 @@ public class MovingEnemyBase : BaseEnemy
         switch (m_enemyState)
         {
             case EnemyState.Spawning:
-                if (!m_ScreenWrapper.OnScreen())
-                {
-                    StartCoroutine(MoveOnScreen());
-                }
-                else
+                // if (!m_ScreenWrapper.OnScreen())
+                // {
+                //     StartCoroutine(MoveOnScreen());
+                // }
                 {
                     m_enemyState = EnemyState.Active;
                 }
                 break;
             case EnemyState.Active:
-                int RandomNumber = Random.Range(0, 2);
+                int RandomNumber = Random.Range(0, 1);
                 if (RandomNumber == 0)
                 {
                     StartCoroutine(MovementSideToSide());
@@ -67,13 +66,10 @@ public class MovingEnemyBase : BaseEnemy
 
     private IEnumerator MovementSideToSide()
     {
-        yield return new WaitForSeconds(0.5f);
-
         while (m_Health > 0)
         {
             float pingPongX = Mathf.PingPong(m_timer * m_Speed, m_screenSpace.x);
-            float targetY = m_Target.transform.position.y;
-            Vector2 newPosition = new Vector2(pingPongX, targetY);
+            Vector2 newPosition = new Vector2(pingPongX, transform.position.y);
             transform.position = Vector2.Lerp(transform.position, newPosition, Time.deltaTime);
 
             yield return null;
@@ -83,12 +79,17 @@ public class MovingEnemyBase : BaseEnemy
 
     private IEnumerator MovementSideToTarget()
     {
-        yield return new WaitForSeconds(0.5f);
-
         while (m_Health > 0)
         {
             float pingPongX = Mathf.PingPong(m_timer * m_Speed, m_screenSpace.x);
-            Vector2 newPosition = new Vector2(pingPongX, m_enemyPosition.y);
+            float newY = transform.position.y;
+            if (newY >= m_Target.transform.position.y)
+            {
+                newY = transform.position.y - m_SpeedY * Time.deltaTime;
+            } else {
+                newY = m_Target.transform.position.y;
+            }
+            Vector2 newPosition = new Vector2(pingPongX, newY);
             transform.position = Vector2.Lerp(transform.position, newPosition, Time.deltaTime);
             yield return null;
         }

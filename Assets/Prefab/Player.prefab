@@ -41,10 +41,11 @@ GameObject:
   m_Component:
   - component: {fileID: 3665432688075353748}
   - component: {fileID: 8976350932411093079}
-  - component: {fileID: 8410430751684333940}
+  - component: {fileID: 8540527463187343793}
   - component: {fileID: 206533517147303266}
   - component: {fileID: 1801567645907101573}
   - component: {fileID: 2005118849260026328}
+  - component: {fileID: 4768845477012121535}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -85,13 +86,23 @@ MonoBehaviour:
   m_FireRate: 0.15
   m_CanFire: 0
   padding: 1
+  isInvulnerable: 0
+  m_iFrames: 3
+  m_iFrameDuration: 0.1
   m_Bullet: {fileID: 6024319669855036971, guid: 4dfe8573b6fb3c54f931457c94db5fa0, type: 3}
   m_Damage: 1
   m_BulletSpeed: 10
   m_LifeTime: 2
+  m_ShipForms:
+  - {fileID: 21300000, guid: ddb13529c369313429132737048d8808, type: 3}
+  - {fileID: 21300000, guid: 9a0c02e45c2869d4980d9fa16e469dad, type: 3}
+  - {fileID: 21300000, guid: d0ac1de90b7b3fd4596bb96ac4c6a360, type: 3}
+  m_ShipForm: 0
+  m_BulletCount: 1
+  m_SpreadAngle: 0
   m_CanMegaBuster: 0
   m_MegaBusterCooldown: 5
---- !u!114 &8410430751684333940
+--- !u!114 &8540527463187343793
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -230,3 +241,33 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.32, y: 0.32}
   m_EdgeRadius: 0
+--- !u!114 &4768845477012121535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7868668619552183059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 57033818877ab8842b73c14f4a8c7879, type: 3}
+  m_NotificationBehavior: 3
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
