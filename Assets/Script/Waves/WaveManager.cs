@@ -1,49 +1,53 @@
 using System.Collections;
-using System.Collections.Generic;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveManager : Singleton<WaveManager>
 {
-
     [SerializeField]
-    private Wave[] m_Waves;
-    [SerializeField]
-    private int m_CurrentWave = 0;
-    [SerializeField]
-    private int m_WaveCount = 0;
-    private Wave m_Wave;
+    private Wave[] waves;
 
+    private int currentWaveIndex = 0;
 
-    void Start()
+    new void Awake()
     {
-        m_WaveCount = m_Waves.Length;
-        if (m_Waves.Length == 0)
-        {
-            Debug.LogError("No waves found");
-        }
-        m_Wave = m_Waves[m_CurrentWave];
-        StartWave(m_CurrentWave);
+        base.Awake();
     }
-    
-
-    private void StartWave(int waveIndex)
+    private void Start()
     {
-        Instantiate(m_Waves[waveIndex]);
+        if (waves.Length > 0)
+        {
+            StartCoroutine(WaveRoutine());
+        }
+    }
+
+    private IEnumerator WaveRoutine()
+    {
+        while (true)
+        {
+            StartWave();
+            yield return new WaitForSeconds(30f);
+        }
     }
 
     public void NextWave()
     {
-        m_CurrentWave++;
-        if (m_CurrentWave < m_WaveCount)
-        {
-            m_Wave = m_Waves[m_CurrentWave];
-            StartWave(m_CurrentWave);
-        }
-        else
-        {
-            //End game
-            Debug.Log("No more waves");
-        }
+        currentWaveIndex = (currentWaveIndex + 1) % waves.Length;
+        Destroy(transform.GetChild(0).gameObject);
+        StartWave();
+    }
+
+    private void StartWave()
+    {
+        Wave currentWave = Instantiate(waves[currentWaveIndex], transform.position, Quaternion.identity, transform.parent);
+        currentWave.OnWaveCompleted += HandleWaveCompleted;
+        currentWave.StartWave();
+        GameManager.Instance.m_Wave++;
+    }
+
+    private void HandleWaveCompleted()
+    {
+        NextWave();
     }
 }
-

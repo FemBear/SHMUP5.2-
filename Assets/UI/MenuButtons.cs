@@ -9,26 +9,41 @@ public class MenuButtons : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
+
     public void PlayGame()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
-        GameManager.Instance.m_Score = 0;
-        GameManager.Instance.m_Wave = 0;
+        LoadScene("Game");
+        ResetGameState();
     }
+
     public void Highscore()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Highscore");
+        LoadScene("Highscore");
     }
+
     public void MainMenu()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        LoadScene("Menu");
     }
+
     public void Credits()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Credits");
+        LoadScene("Credits");
     }
+
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    private void LoadScene(string sceneName)
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+    }
+
+    private void ResetGameState()
+    {
+        GameManager.Instance.m_Score = 0;
+        GameManager.Instance.m_Wave = 0;
     }
 }

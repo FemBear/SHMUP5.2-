@@ -6,6 +6,8 @@ public class Player : Plane
 {
     [Header("ShipUpgrades")]
     [SerializeField]
+    private GameObject ExplosionFX;
+    [SerializeField]
     private Sprite[] m_ShipForms;
     [SerializeField]
     private int m_ShipForm = 0;
@@ -16,26 +18,25 @@ public class Player : Plane
     [SerializeField]
     private float m_RepeatRate = 0.5f;
 
-    [Header("MegaBuster Settings")]
+    [Header("PowerUp Settings")]
     [SerializeField]
     private bool m_CanMegaBuster = false;
     [SerializeField]
-    private float m_MegaBusterCooldown = 5;
+    private float m_shieldTime = 3;
+    private GameObject m_Shield;
     PlayerControls m_InputControls;
     private Coroutine shootingCoroutine;
 
-    void Awake()
-    {
-        SetUpControlls();
-    }
+    [Header("Audio")]
+    [SerializeField]
+    private AudioClip shootClip;
+    [SerializeField]
+    private AudioClip deathClip;
 
     void Start()
     {
-        m_Rb = GetComponent<Rigidbody2D>();
-        m_Collider = GetComponent<BoxCollider2D>();
-        m_SpriteRenderer = GetComponent<SpriteRenderer>();
-        m_BulletSpawn = transform.GetChild(0);
-        transform.position = new Vector3(8.8886f, -4, 0);
+        SetUpControlls();
+        SetUp();
     }
 
     private void Movement(InputAction.CallbackContext context)
@@ -43,11 +44,17 @@ public class Player : Plane
         if (context.performed)
         {
             Vector2 direction = context.ReadValue<Vector2>();
-            m_Rb.velocity = new Vector2(direction.x * m_Speed, direction.y * m_Speed);
+            if (m_Rb != null)
+            {
+                m_Rb.velocity = new Vector2(direction.x * m_Speed, direction.y * m_Speed);
+            }
         }
         else if (context.canceled)
         {
-            m_Rb.velocity = Vector2.zero;
+            if (m_Rb != null)
+            {
+                m_Rb.velocity = Vector2.zero;
+            }
         }
     }
 
@@ -55,8 +62,7 @@ public class Player : Plane
     {
         if (context.performed)
         {
-            if (shootingCoroutine == null)
-                shootingCoroutine = StartCoroutine(ShootingRoutine());
+            shootingCoroutine ??= StartCoroutine(ShootingRoutine());
         }
         else if (context.canceled)
         {
@@ -84,6 +90,15 @@ public class Player : Plane
             yield return null;
         }
     }
+
+    void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Enemy") && !m_isInvulnerable)
+        {
+            TakeDamage(1);
+        }
+    }
+
     public override void Fire()
     {
         m_CanFire = m_FireRate * Time.deltaTime + m_RepeatRate;
@@ -96,6 +111,7 @@ public class Player : Plane
                 bullet.transform.Rotate(0, 0, -m_SpreadAngle / 2 + m_SpreadAngle * i / (m_BulletCount - 1));
             }
         }
+        AudioManager.Instance.PlaySFX(shootClip);
     }
 
     #region ShipUpgradesAndPowerUps
@@ -107,8 +123,7 @@ public class Player : Plane
             m_ShipForm++;
             m_SpriteRenderer.sprite = m_ShipForms[m_ShipForm];
         }
-        switch
-        (m_ShipForm)
+        switch (m_ShipForm)
         {
             case 0:
                 m_BulletCount = 1;
@@ -133,24 +148,25 @@ public class Player : Plane
 
     public IEnumerator Shield()
     {
-        isInvulnerable = true;
-        yield return new WaitForSeconds(5);
-        isInvulnerable = false;
+        m_Shield.SetActive(true);
+        m_isInvulnerable = true;
+        yield return new WaitForSeconds(m_shieldTime);
+        m_Shield.SetActive(false);
+        m_isInvulnerable = false;
     }
 
     #endregion
+
     #region MegaBuster
     private void MegaBuster(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.performed && m_CanMegaBuster)
         {
-            if (m_CanMegaBuster)
-            {
-                Debug.Log("MegaBuster");
-                m_CanMegaBuster = false;
-            }
+            Debug.Log("MegaBuster");
+            m_CanMegaBuster = false;
         }
     }
+
     public void MegaBusterActive()
     {
         m_CanMegaBuster = true;
@@ -175,6 +191,19 @@ public class Player : Plane
         m_InputControls.Player.Pauze.performed += PauzeGame;
     }
 
+    private void SetUp()
+    {
+        m_Rb = GetComponent<Rigidbody2D>();
+        m_Collider = GetComponent<BoxCollider2D>();
+        m_SpriteRenderer = GetComponent<SpriteRenderer>();
+        shootClip = Resources.Load<AudioClip>("$Sound/Effects/Shoot");
+        deathClip = Resources.Load<AudioClip>("$Sound/Effects/Death");
+        m_BulletSpawn = transform.GetChild(0);
+        m_Shield = transform.GetChild(1).gameObject;
+        m_Shield.SetActive(false);
+        transform.position = new Vector3(8.8886f, -4, 0);
+    }
+
     private void PauzeGame(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -182,9 +211,20 @@ public class Player : Plane
             GameManager.Instance.PauzeGame();
         }
     }
-    protected new void FireRate()
+
+    void OnDestroy()
     {
-        return;
+        if (ExplosionFX != null)
+        {
+            Instantiate(ExplosionFX, transform.position, Quaternion.identity);
+        }
+        AudioManager.Instance.PlaySFX(deathClip);
+        GameManager.Instance.GameOver();
+
+        if (shootingCoroutine != null)
+        {
+            StopCoroutine(shootingCoroutine);
+        }
     }
+    #endregion
 }
-#endregion

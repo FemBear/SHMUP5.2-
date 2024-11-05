@@ -7,7 +7,7 @@ public class Plane : MonoBehaviour
 {
     [Header("Plane Settings")]
     [SerializeField]
-    protected int m_Health = 3;
+    public int m_Health = 3;
     [SerializeField]
     protected float m_Speed = 5;
     [SerializeField]
@@ -16,9 +16,9 @@ public class Plane : MonoBehaviour
     protected float m_CanFire = 0.0f;
     protected BoxCollider2D m_Collider;
     [SerializeField]
-    protected int padding = 1;
+    protected int m_padding = 1;
     [SerializeField]
-    protected bool isInvulnerable = false;
+    public bool m_isInvulnerable = false;
     [SerializeField]
     protected int m_iFrames = 1;
     [SerializeField]
@@ -40,15 +40,10 @@ public class Plane : MonoBehaviour
     public virtual void Update()
     {
         FireRate();
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            StartCoroutine(Invulnerability(m_iFrames, m_iFrameDuration));
-        }
     }
-
     internal void TakeDamage(int damage)
     {
-        if (!isInvulnerable)
+        if (!m_isInvulnerable)
         {
             m_Health -= damage;
             if (m_Health <= 0)
@@ -86,7 +81,7 @@ public class Plane : MonoBehaviour
 
     protected virtual IEnumerator Invulnerability(int iFrames, float iFrameDuration)
     {
-        isInvulnerable = true;
+        m_isInvulnerable = true;
         for (int i = 0; i < iFrames; i++)
         {
             m_SpriteRenderer.enabled = false;
@@ -94,7 +89,7 @@ public class Plane : MonoBehaviour
             m_SpriteRenderer.enabled = true;
             yield return new WaitForSeconds(iFrameDuration);
         }
-        isInvulnerable = false;
+        m_isInvulnerable = false;
     }
 }
 

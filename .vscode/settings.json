@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "SHMUP5.2.sln"
+    "dotnet.defaultSolution": "SHMUP5.2-.sln"
 }

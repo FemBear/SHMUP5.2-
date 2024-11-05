@@ -44,6 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ea9bbe4897348141a2144c50a99a899, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_EnemyGroups: []
-  m_EnemyCount: 0
-  m_SpawnInterval: 30
+  enemyGroups:
+  - {fileID: 2939590960848936880, guid: 305152369938e034fa812b5d9bef991d, type: 3}
+  - {fileID: 2939590960848936880, guid: 305152369938e034fa812b5d9bef991d, type: 3}
+  bossGroup: {fileID: 2939590960848936880, guid: fbc88f2db8d0ceb41bdbb1d0250eee49, type: 3}
+  isBossWave: 0
+  spawnInterval: 30

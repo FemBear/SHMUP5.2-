@@ -5,9 +5,9 @@ using UnityEngine;
 public class RandomColors : MonoBehaviour
 {
     private ParticleSystem[] m_ParticleSystems;
-
+    private Color[] m_Colors = new Color[] { Color.red, Color.blue, Color.green, Color.yellow, Color.cyan, Color.magenta, Color.white, Color.black };
     [SerializeField]
-    private float m_ChangeRate = 1;
+    private float m_ChangeRate = 10f;
 
     void Start()
     {
@@ -17,10 +17,11 @@ public class RandomColors : MonoBehaviour
     }
     private void ChangeColor()
     {
-        foreach (var ps in m_ParticleSystems)
+        Color newColor = m_Colors[Random.Range(0, m_Colors.Length)];
+        foreach (ParticleSystem ps in m_ParticleSystems)
         {
             var main = ps.main;
-            main.startColor = new ParticleSystem.MinMaxGradient(Random.ColorHSV());
+            main.startColor = newColor;
         }
     }
     IEnumerator ColorChange()

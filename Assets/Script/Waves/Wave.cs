@@ -4,40 +4,65 @@ using UnityEngine;
 public class Wave : MonoBehaviour
 {
     [SerializeField]
-    internal EnemyGroup[] m_EnemyGroups;
+    private EnemyGroup[] enemyGroups;
+    [SerializeField]
+    private EnemyGroup bossGroup;
+    [SerializeField]
+    private bool isBossWave = false;
+    [SerializeField]
+    private float spawnInterval = 10f;
 
-    [SerializeField]
-    internal int m_EnemyCount = 0;
-    [SerializeField]
-    internal float m_SpawnInterval = 30f;
-    void Start()
+    private int currentGroupIndex = 0;
+    public event System.Action OnWaveCompleted;
+
+    public void StartWave()
     {
-        //find all enemies on the scene
-        m_EnemyCount = FindObjectsOfType<BaseEnemy>().Length;
-        if (m_EnemyCount == 0)
+        StartCoroutine(SpawnEnemyGroups());
+    }
+
+    private IEnumerator SpawnEnemyGroups()
+    {
+        for (currentGroupIndex = 0; currentGroupIndex < enemyGroups.Length; currentGroupIndex++)
         {
-            Debug.LogError("No enemies found");
+            yield return new WaitForSeconds(1f);
+            SpawnGroup(enemyGroups[currentGroupIndex]);
+            yield return new WaitForSeconds(spawnInterval);
         }
-        StartWave();
+        OnAllEnemyGroupsCompleted();
     }
 
-    private void StartWave()
+    private void SpawnGroup(EnemyGroup group)
     {
-        StartCoroutine(SpawnEnemies());
+        EnemyGroup enemyGroup = Instantiate(group);
+        enemyGroup.transform.SetParent(transform);
+        enemyGroup.OnAllEnemiesDestroyed += HandleAllEnemiesDestroyed;
+        enemyGroup.StartGroup();
     }
 
-
-    private IEnumerator SpawnEnemies()
+    private void HandleAllEnemiesDestroyed()
     {
-        for (int i = 0; i < m_EnemyGroups.Length; i++)
+        currentGroupIndex++;
+        if (currentGroupIndex >= enemyGroups.Length)
         {
-            m_EnemyGroups[i].SpawnGroup();
-            yield return new WaitForSeconds(m_SpawnInterval);
-            if (i == m_EnemyGroups.Length - 1)
-            {
-                WaveManager.Instance.NextWave();
-                Destroy(this.gameObject);
-            }
+            isBossWave = true;
+            OnAllEnemyGroupsCompleted();
+        }
+        else
+        {
+            SpawnGroup(enemyGroups[currentGroupIndex]);
+        }
+    }
+
+    private void OnAllEnemyGroupsCompleted()
+    {
+        if (isBossWave)
+        {
+            SpawnGroup(bossGroup);
+            isBossWave = false;
+        }
+        else
+        {
+            OnWaveCompleted?.Invoke();
         }
     }
 }

@@ -11,7 +11,7 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     internal float b_LifeTime = 5;
     [SerializeField]
-    internal GameObject b_owner;
+    public GameObject b_owner;
 
 
 
@@ -34,16 +34,19 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        Debug.Log("Collided with: " + other.gameObject.name);
-        if (other.gameObject.CompareTag("Player") && other.gameObject != b_owner)
+        if (other.gameObject.CompareTag("Player") && other.gameObject != b_owner && b_owner.CompareTag("Enemy"))
         {
             other.gameObject.GetComponent<Player>().TakeDamage(b_Damage);
             Destroy(gameObject);
         }
-        if (other.gameObject.CompareTag("Enemy") && other.gameObject != b_owner)
+        if (other.gameObject.CompareTag("Enemy") && other.gameObject != b_owner && b_owner.CompareTag("Player"))
         {
             other.gameObject.GetComponent<BaseEnemy>().TakeDamage(b_Damage);
             Destroy(gameObject);
+        }
+        if (other.gameObject.CompareTag("Enemy") && b_owner.CompareTag("Enemy"))
+        {
+            return;
         }
     }
 }
