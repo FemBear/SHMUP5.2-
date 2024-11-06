@@ -17,9 +17,6 @@ public class BaseEnemy : Plane
     [SerializeField]
     protected GameObject m_Target;
     [SerializeField]
-    [CanBeNull]
-    protected GameObject m_ExplosionFX;
-    [SerializeField]
     protected int m_Score = 10;
     [Header("PowerUp Settings")]
     [SerializeField]
@@ -131,10 +128,6 @@ public class BaseEnemy : Plane
     }
     protected void OnDestroy()
     {
-        if (m_ExplosionFX != null)
-        {
-            Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
-        }
         AudioManager.Instance.PlaySFX(deathClip);
         EnemyGroup enemyGroup = FindObjectOfType<EnemyGroup>();
         if (enemyGroup != null)

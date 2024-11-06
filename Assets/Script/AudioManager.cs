@@ -1,17 +1,19 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Unity.VisualScripting;
 
 public class AudioManager : Singleton<AudioManager>
 {
     public AudioSource musicSource;
     public AudioSource sfxSource;
     public float fadeDuration = 1.0f;
+    private static bool isInitialized = false;
 
-    private new void Awake()
+    new void Awake()
     {
         base.Awake();
-        Initialize();
+        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
     }
 
     private void OnEnable()
@@ -23,10 +25,17 @@ public class AudioManager : Singleton<AudioManager>
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
-
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        SwitchMusic(scene.name);
+        Debug.Log("Scene loaded: " + scene.name);
+        if (!isInitialized)
+        {
+            Initialize();
+        }
+        else
+        {
+            SwitchMusic(scene.name);
+        }
     }
 
     public void PlaySound(AudioClip clip, AudioSource source)
@@ -35,6 +44,11 @@ public class AudioManager : Singleton<AudioManager>
         {
             source.PlayOneShot(clip);
         }
+    }
+
+    public void PlaySFX(AudioClip clip)
+    {
+        PlaySound(clip, sfxSource);
     }
 
     public void PlayMusic(AudioClip musicClip)
@@ -58,7 +72,12 @@ public class AudioManager : Singleton<AudioManager>
         AudioClip newMusic = Resources.Load<AudioClip>($"Sound/Music/{sceneName}");
         if (newMusic != null)
         {
+            Debug.Log("Switching music to " + newMusic.name);
             StartCoroutine(SwitchMusicWithFade(newMusic));
+        }
+        else
+        {
+            Debug.LogError("Music clip not found for scene: " + sceneName);
         }
     }
 
@@ -93,19 +112,27 @@ public class AudioManager : Singleton<AudioManager>
 
     private IEnumerator SwitchMusicWithFade(AudioClip newMusic)
     {
+        Debug.Log("Starting music switch fade-out.");
         yield return FadeOutMusic();
+
+        Debug.Log("Starting music switch fade-in.");
         yield return FadeInMusic(newMusic);
     }
 
     public void Initialize()
     {
+        if (isInitialized) return;
+
         GameObject audioSourceObject = new GameObject("AudioSources");
         audioSourceObject.transform.SetParent(transform);
 
         musicSource = CreateAudioSource(audioSourceObject.transform, "MusicSource", true, 0.5f);
         sfxSource = CreateAudioSource(audioSourceObject.transform, "SFXSource", false, 0.5f);
 
+        Debug.Log("AudioManager initialized. Current scene: " + SceneManager.GetActiveScene().name);
         SwitchMusic(SceneManager.GetActiveScene().name);
+
+        isInitialized = true;
     }
 
     private AudioSource CreateAudioSource(Transform parent, string name, bool loop, float volume)
@@ -129,10 +156,5 @@ public class AudioManager : Singleton<AudioManager>
     {
         musicSource.mute = isMuted;
         sfxSource.mute = isMuted;
-    }
-
-    public void PlaySFX(AudioClip clip)
-    {
-        PlaySound(clip, sfxSource);
     }
 }

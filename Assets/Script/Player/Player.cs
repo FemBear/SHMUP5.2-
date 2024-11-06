@@ -6,8 +6,6 @@ public class Player : Plane
 {
     [Header("ShipUpgrades")]
     [SerializeField]
-    private GameObject ExplosionFX;
-    [SerializeField]
     private Sprite[] m_ShipForms;
     [SerializeField]
     private int m_ShipForm = 0;
@@ -214,9 +212,9 @@ public class Player : Plane
 
     void OnDestroy()
     {
-        if (ExplosionFX != null)
+        if (m_ExplosionFX != null)
         {
-            Instantiate(ExplosionFX, transform.position, Quaternion.identity);
+            Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
         }
         AudioManager.Instance.PlaySFX(deathClip);
         GameManager.Instance.GameOver();

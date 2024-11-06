@@ -23,7 +23,25 @@ public class GameManager : Singleton<GameManager>
     private WaveManager m_WaveManager;
     private UIManager m_UIManager;
 
+
     void Start()
+    {
+        m_PauseMenu = Resources.Load<GameObject>("PauseMenu");
+        m_GameOverMenu = Resources.Load<GameObject>("GameOverMenu");
+        m_InputField = GameObject.FindObjectOfType<InputField>();
+        if (m_InputField != null)
+        {
+            m_InputField.onEndEdit.AddListener(delegate { SetName(m_InputField.text); });
+        }
+        else
+        {
+            return;
+        }
+        if (m_PlayerName == "")
+        m_UIManager = UIManager.Instance;
+    }
+
+    void FixedUpdate()
     {
         if(SceneManager.GetActiveScene().name == "Game")
         {
@@ -37,20 +55,6 @@ public class GameManager : Singleton<GameManager>
                 m_WaveManager.enabled = false;
             }
         }
-        m_PauseMenu = Resources.Load<GameObject>("PauseMenu");
-        m_GameOverMenu = Resources.Load<GameObject>("GameOverMenu");
-        m_InputField = GameObject.FindObjectOfType<InputField>();
-        if (m_InputField != null)
-        {
-            m_InputField.onEndEdit.AddListener(delegate { SetName(m_InputField.text); });
-        }
-        else
-        {
-            return;
-        }
-        if (m_PlayerName == "")
-        AudioManager.Instance.SwitchMusic(SceneManager.GetActiveScene().name);
-        m_UIManager = UIManager.Instance;
     }
 
     public void SetName(string playerName)
@@ -62,12 +66,20 @@ public class GameManager : Singleton<GameManager>
     {
         m_UIManager.TogglePauseMenu();
     }
-
+    [ContextMenu("Next Scene")]
+    private void NextScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
     public void GameOver()
     {
         Time.timeScale = 0;
         AudioManager.Instance.StopMusic();
+        if (m_UIManager != null)
+        {
         m_UIManager.ShowGameOverMenu();
+        }
+
         if(m_PlayerName == "")
         {
             m_PlayerName = "Player";

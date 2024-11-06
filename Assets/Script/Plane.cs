@@ -37,6 +37,9 @@ public class Plane : MonoBehaviour
     [SerializeField]
     internal float m_LifeTime = 5;
     protected SpriteRenderer m_SpriteRenderer;
+    [SerializeField]
+    [CanBeNull]
+    protected GameObject m_ExplosionFX;
     public virtual void Update()
     {
         FireRate();
@@ -48,6 +51,10 @@ public class Plane : MonoBehaviour
             m_Health -= damage;
             if (m_Health <= 0)
             {
+                if (m_ExplosionFX != null)
+                {
+                    Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
+                }
                 Destroy(gameObject);
             }
             StartCoroutine(Invulnerability(m_iFrames, m_iFrameDuration));
