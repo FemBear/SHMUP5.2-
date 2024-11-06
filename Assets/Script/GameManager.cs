@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,55 +17,22 @@ public class GameManager : Singleton<GameManager>
     public string m_PlayerName = "Player";
     [SerializeField]
     [CanBeNull]
-    private InputField m_InputField;
-    private int m_health;
+    private TMP_InputField m_InputField;
     private GameObject m_PauseMenu;
     private GameObject m_GameOverMenu;
-    private WaveManager m_WaveManager;
-    private UIManager m_UIManager;
 
 
     void Start()
     {
         m_PauseMenu = Resources.Load<GameObject>("PauseMenu");
         m_GameOverMenu = Resources.Load<GameObject>("GameOverMenu");
-        m_InputField = GameObject.FindObjectOfType<InputField>();
-        if (m_InputField != null)
-        {
-            m_InputField.onEndEdit.AddListener(delegate { SetName(m_InputField.text); });
-        }
-        else
-        {
-            return;
-        }
-        if (m_PlayerName == "")
-        m_UIManager = UIManager.Instance;
-    }
-
-    void FixedUpdate()
-    {
-        if(SceneManager.GetActiveScene().name == "Game")
-        {
-            m_WaveManager = GameObject.FindObjectOfType<WaveManager>();
-            gameObject.SetActive(true);
-        }
-        else
-        {
-            if (m_WaveManager != null)
-            {
-                m_WaveManager.enabled = false;
-            }
-        }
+        m_InputField = GameObject.FindObjectOfType<TMP_InputField>();
     }
 
     public void SetName(string playerName)
     {
         m_PlayerName = playerName;
-    }
-
-    public void PauzeGame()
-    {
-        m_UIManager.TogglePauseMenu();
+        Debug.Log("Player Name: " + m_PlayerName);
     }
     [ContextMenu("Next Scene")]
     private void NextScene()
@@ -75,10 +43,6 @@ public class GameManager : Singleton<GameManager>
     {
         Time.timeScale = 0;
         AudioManager.Instance.StopMusic();
-        if (m_UIManager != null)
-        {
-        m_UIManager.ShowGameOverMenu();
-        }
 
         if(m_PlayerName == "")
         {

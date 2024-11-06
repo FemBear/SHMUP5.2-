@@ -1,20 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class UIManager : Singleton<UIManager>
 {
-    private static UIManager _instance;
-    public static UIManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<UIManager>();
-            }
-            return _instance;
-        }
-    }
 
     [SerializeField]
     private GameObject m_PauseMenu;
@@ -33,7 +21,6 @@ public class UIManager : MonoBehaviour
             m_InputField.onEndEdit.AddListener(delegate { GameManager.Instance.SetName(m_InputField.text); });
         }
     }
-
     public void TogglePauseMenu()
     {
         if (Time.timeScale == 0)

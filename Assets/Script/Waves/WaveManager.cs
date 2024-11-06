@@ -3,17 +3,13 @@ using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class WaveManager : Singleton<WaveManager>
+public class WaveManager : MonoBehaviour
 {
     [SerializeField]
     private Wave[] waves;
 
     private int currentWaveIndex = 0;
 
-    new void Awake()
-    {
-        base.Awake();
-    }
     private void Start()
     {
         if (waves.Length > 0)

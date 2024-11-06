@@ -7,14 +7,8 @@ public class AudioManager : Singleton<AudioManager>
 {
     public AudioSource musicSource;
     public AudioSource sfxSource;
-    public float fadeDuration = 1.0f;
+    public float fadeDuration = 0.5f;
     private static bool isInitialized = false;
-
-    new void Awake()
-    {
-        base.Awake();
-        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
-    }
 
     private void OnEnable()
     {
@@ -28,6 +22,7 @@ public class AudioManager : Singleton<AudioManager>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log("Scene loaded: " + scene.name);
+        Time.timeScale = 1;
         if (!isInitialized)
         {
             Initialize();
@@ -88,7 +83,7 @@ public class AudioManager : Singleton<AudioManager>
         while (musicSource.volume > 0)
         {
             musicSource.volume -= startVolume * Time.deltaTime / fadeDuration;
-            yield return null;
+            yield return new WaitForEndOfFrame();
         }
 
         musicSource.Stop();
@@ -113,10 +108,19 @@ public class AudioManager : Singleton<AudioManager>
     private IEnumerator SwitchMusicWithFade(AudioClip newMusic)
     {
         Debug.Log("Starting music switch fade-out.");
-        yield return FadeOutMusic();
+        float startVolume = musicSource.volume;
 
-        Debug.Log("Starting music switch fade-in.");
-        yield return FadeInMusic(newMusic);
+        while (musicSource.volume > 0)
+        {
+            musicSource.volume -= Time.deltaTime / fadeDuration;
+            yield return null;
+        }
+
+        musicSource.Stop();
+        musicSource.volume = startVolume;
+
+        // Fade in the new music
+        yield return StartCoroutine(FadeInMusic(newMusic));
     }
 
     public void Initialize()

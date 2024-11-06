@@ -15,14 +15,15 @@ public class HighScoreText : MonoBehaviour
     {
         highscoreText = GetComponent<TextMeshProUGUI>();
         highscores = HighscoreManager.Instance.GetHighscores();
-        lastEntry = HighscoreManager.Instance.lastEntry;
-        position = HighscoreManager.Instance.position;
         UpdateHighscoreText();
     }
-
+    
+    [ContextMenu("Update Highscore Text")]
     void UpdateHighscoreText()
     {
         int count = 0;
+        lastEntry = HighscoreManager.Instance.lastEntry;
+        position = HighscoreManager.Instance.position;
         highscoreText.text = "Highscores:\n";
         Debug.Log("Updating highscore text");
 
@@ -46,11 +47,10 @@ public class HighScoreText : MonoBehaviour
                 break;
             }
         }
-        if (position > HighscoreManager.maxHighscores)
+        if (HighscoreManager.Instance.position >= HighscoreManager.maxHighscores)
         {
-            highscoreText.text += $"<b>{position}. {lastEntry.playerName} - {lastEntry.score}\n</b>";
+            highscoreText.text += $"<b>{position + 1}. {lastEntry.playerName} - {lastEntry.score}\n</b>";
         }
-
         Debug.Log("Highscore text updated: " + highscoreText.text);
     }
 }

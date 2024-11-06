@@ -8,7 +8,7 @@ public static class SaveSystem
     private static string fileName = "save.json";
 
 
-public static void SerializeData(SaveData data)
+    public static void SerializeData(SaveData data)
     {
         string path = Path.Combine(Application.persistentDataPath, fileName);
         using (StreamWriter writer = File.CreateText(path))

@@ -206,7 +206,7 @@ public class Player : Plane
     {
         if (context.performed)
         {
-            GameManager.Instance.PauzeGame();
+            UIManager.Instance.TogglePauseMenu();
         }
     }
 
