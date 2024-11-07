@@ -5,11 +5,14 @@ using Unity.VisualScripting;
 
 public class AudioManager : Singleton<AudioManager>
 {
-    public AudioSource musicSource;
-    public AudioSource sfxSource;
-    public float fadeDuration = 0.5f;
-    private static bool isInitialized = false;
+    #region Variables
+    public AudioSource m_MusicSource;
+    public AudioSource m_SfxSource;
+    public float m_FadeDuration = 0.5f;
+    private static bool m_IsInitialized = false;
+    #endregion
 
+    #region Basics
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -19,11 +22,12 @@ public class AudioManager : Singleton<AudioManager>
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log("Scene loaded: " + scene.name);
         Time.timeScale = 1;
-        if (!isInitialized)
+        if (!m_IsInitialized)
         {
             Initialize();
         }
@@ -32,36 +36,9 @@ public class AudioManager : Singleton<AudioManager>
             SwitchMusic(scene.name);
         }
     }
+    #endregion
 
-    public void PlaySound(AudioClip clip, AudioSource source)
-    {
-        if (clip != null && source != null)
-        {
-            source.PlayOneShot(clip);
-        }
-    }
-
-    public void PlaySFX(AudioClip clip)
-    {
-        PlaySound(clip, sfxSource);
-    }
-
-    public void PlayMusic(AudioClip musicClip)
-    {
-        if (musicClip != null)
-        {
-            StartCoroutine(FadeInMusic(musicClip));
-        }
-    }
-
-    public void StopMusic()
-    {
-        if (musicSource.isPlaying)
-        {
-            StartCoroutine(FadeOutMusic());
-        }
-    }
-
+    #region SwitchMusic
     public void SwitchMusic(string sceneName)
     {
         AudioClip newMusic = Resources.Load<AudioClip>($"Sound/Music/{sceneName}");
@@ -76,67 +53,111 @@ public class AudioManager : Singleton<AudioManager>
         }
     }
 
+    private IEnumerator SwitchMusicWithFade(AudioClip newMusic)
+    {
+        Debug.Log("Starting music switch fade-out.");
+        float startVolume = m_MusicSource.volume;
+
+        while (m_MusicSource.volume > 0)
+        {
+            m_MusicSource.volume -= Time.deltaTime / m_FadeDuration;
+            yield return null;
+        }
+
+        m_MusicSource.Stop();
+        m_MusicSource.volume = startVolume;
+
+        yield return StartCoroutine(FadeInMusic(newMusic));
+    }
+
     private IEnumerator FadeOutMusic()
     {
-        float startVolume = musicSource.volume;
+        float startVolume = m_MusicSource.volume;
 
-        while (musicSource.volume > 0)
+        while (m_MusicSource.volume > 0)
         {
-            musicSource.volume -= startVolume * Time.deltaTime / fadeDuration;
+            m_MusicSource.volume -= startVolume * Time.deltaTime / m_FadeDuration;
             yield return new WaitForEndOfFrame();
         }
 
-        musicSource.Stop();
-        musicSource.volume = startVolume;
+        m_MusicSource.Stop();
+        m_MusicSource.volume = startVolume;
     }
 
     private IEnumerator FadeInMusic(AudioClip newMusic)
     {
-        musicSource.clip = newMusic;
-        musicSource.Play();
-        musicSource.volume = 0f;
+        m_MusicSource.clip = newMusic;
+        m_MusicSource.Play();
+        m_MusicSource.volume = 0f;
 
-        while (musicSource.volume < 0.5f)
+        while (m_MusicSource.volume < 0.5f)
         {
-            musicSource.volume += Time.deltaTime / fadeDuration;
+            m_MusicSource.volume += Time.deltaTime / m_FadeDuration;
             yield return null;
         }
 
-        musicSource.volume = 0.5f;
+        m_MusicSource.volume = 0.5f;
     }
+    #endregion
 
-    private IEnumerator SwitchMusicWithFade(AudioClip newMusic)
+    #region Utility
+    public void PlaySound(AudioClip clip, AudioSource source)
     {
-        Debug.Log("Starting music switch fade-out.");
-        float startVolume = musicSource.volume;
-
-        while (musicSource.volume > 0)
+        if (clip != null && source != null)
         {
-            musicSource.volume -= Time.deltaTime / fadeDuration;
-            yield return null;
+            source.PlayOneShot(clip);
         }
-
-        musicSource.Stop();
-        musicSource.volume = startVolume;
-
-        // Fade in the new music
-        yield return StartCoroutine(FadeInMusic(newMusic));
     }
 
-    public void Initialize()
+    public void PlaySFX(AudioClip clip)
     {
-        if (isInitialized) return;
+        PlaySound(clip, m_SfxSource);
+    }
+
+    public void PlayMusic(AudioClip musicClip)
+    {
+        if (musicClip != null)
+        {
+            StartCoroutine(FadeInMusic(musicClip));
+        }
+    }
+
+    public void StopMusic()
+    {
+        if (m_MusicSource.isPlaying)
+        {
+            StartCoroutine(FadeOutMusic());
+        }
+    }
+
+    public void SetVolume(float volume)
+    {
+        m_MusicSource.volume = volume;
+        m_SfxSource.volume = volume;
+    }
+
+    public void Mute(bool isMuted)
+    {
+        m_MusicSource.mute = isMuted;
+        m_SfxSource.mute = isMuted;
+    }
+    #endregion
+
+    #region Setup
+    private void Initialize()
+    {
+        if (m_IsInitialized) return;
 
         GameObject audioSourceObject = new GameObject("AudioSources");
         audioSourceObject.transform.SetParent(transform);
 
-        musicSource = CreateAudioSource(audioSourceObject.transform, "MusicSource", true, 0.5f);
-        sfxSource = CreateAudioSource(audioSourceObject.transform, "SFXSource", false, 0.5f);
+        m_MusicSource = CreateAudioSource(audioSourceObject.transform, "MusicSource", true, 0.5f);
+        m_SfxSource = CreateAudioSource(audioSourceObject.transform, "SFXSource", false, 0.5f);
 
         Debug.Log("AudioManager initialized. Current scene: " + SceneManager.GetActiveScene().name);
         SwitchMusic(SceneManager.GetActiveScene().name);
 
-        isInitialized = true;
+        m_IsInitialized = true;
     }
 
     private AudioSource CreateAudioSource(Transform parent, string name, bool loop, float volume)
@@ -149,16 +170,5 @@ public class AudioManager : Singleton<AudioManager>
         source.volume = volume;
         return source;
     }
-
-    public void SetVolume(float volume)
-    {
-        musicSource.volume = volume;
-        sfxSource.volume = volume;
-    }
-
-    public void Mute(bool isMuted)
-    {
-        musicSource.mute = isMuted;
-        sfxSource.mute = isMuted;
-    }
+    #endregion
 }

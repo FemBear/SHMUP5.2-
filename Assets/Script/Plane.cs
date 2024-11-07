@@ -3,8 +3,10 @@ using System.Collections;
 using JetBrains.Annotations;
 using Unity.VisualScripting;
 using UnityEngine;
+
 public class Plane : MonoBehaviour
 {
+    #region Plane Variables
     [Header("Plane Settings")]
     [SerializeField]
     public int m_Health = 3;
@@ -13,7 +15,12 @@ public class Plane : MonoBehaviour
     [SerializeField]
     protected float m_FireRate = 0.15f;
     [SerializeField]
-    protected float m_CanFire = 0.0f;
+    public float m_CanFire = 0.0f;
+    protected Rigidbody2D m_Rb;
+    protected SpriteRenderer m_SpriteRenderer;
+    [SerializeField]
+    [CanBeNull]
+    protected GameObject m_ExplosionFX;
     protected BoxCollider2D m_Collider;
     [SerializeField]
     protected int m_padding = 1;
@@ -23,10 +30,9 @@ public class Plane : MonoBehaviour
     protected int m_iFrames = 1;
     [SerializeField]
     protected float m_iFrameDuration = 0.1f;
+    #endregion
 
-    [CanBeNull]
-    protected Transform m_BulletSpawn;
-    protected Rigidbody2D m_Rb;
+    #region Bullet Variables
     [SerializeField]
     [Header("Bullet Settings")]
     protected GameObject m_Bullet;
@@ -36,20 +42,23 @@ public class Plane : MonoBehaviour
     internal int m_BulletSpeed = 10;
     [SerializeField]
     internal float m_LifeTime = 5;
-    protected SpriteRenderer m_SpriteRenderer;
-    [SerializeField]
     [CanBeNull]
-    protected GameObject m_ExplosionFX;
-    public virtual void Update()
-    {
-        FireRate();
-    }
-    internal void TakeDamage(int damage)
+    protected Transform m_BulletSpawn;
+    #endregion
+
+    [Header("Audio")]
+    [SerializeField]
+    protected AudioClip m_ShootClip;
+    [SerializeField]
+    protected AudioClip m_DeathClip;
+
+    #region Health/Damage
+    internal virtual void TakeDamage(int damage)
     {
         if (!m_isInvulnerable)
         {
             m_Health -= damage;
-            if (m_Health <= 0)
+            if (m_Health <= 0 && gameObject.tag != "Player")
             {
                 if (m_ExplosionFX != null)
                 {
@@ -57,32 +66,11 @@ public class Plane : MonoBehaviour
                 }
                 Destroy(gameObject);
             }
+            if (gameObject.tag == "Player")
+            {
+                UIManager.Instance.UpdateHealthUI(m_Health);
+            }
             StartCoroutine(Invulnerability(m_iFrames, m_iFrameDuration));
-        }
-    }
-
-    public virtual void Fire()
-    {
-        if (m_CanFire <= 0 && m_BulletSpawn != null)
-        {
-            m_CanFire = m_FireRate;
-            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, Quaternion.identity);
-            bullet.GetComponent<Bullet>().b_owner = gameObject;
-            bullet.GetComponent<Bullet>().b_Damage = m_Damage;
-            bullet.GetComponent<Bullet>().b_Speed = m_BulletSpeed;
-            bullet.GetComponent<Bullet>().b_LifeTime = m_LifeTime;
-        }
-    }
-
-    protected virtual void FireRate()
-    {
-        if (m_CanFire > 0)
-        {
-            m_CanFire -= Time.deltaTime;
-        }
-        if (m_CanFire < 0)
-        {
-            m_CanFire = 0;
         }
     }
 
@@ -98,5 +86,29 @@ public class Plane : MonoBehaviour
         }
         m_isInvulnerable = false;
     }
+    #endregion
+
+    #region Shooting
+    public virtual void Fire()
+    {
+        if (m_CanFire <= 0 && m_BulletSpawn != null)
+        {
+            m_CanFire = m_FireRate; // Set m_CanFire to m_FireRate when firing
+            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, Quaternion.identity);
+            bullet.GetComponent<Bullet>().b_owner = gameObject;
+            bullet.GetComponent<Bullet>().b_Damage = m_Damage;
+            bullet.GetComponent<Bullet>().b_Speed = m_BulletSpeed;
+            bullet.GetComponent<Bullet>().b_LifeTime = m_LifeTime;
+        }
+    }
+
+    protected virtual void FireRate()
+    {
+        if (m_CanFire > 0)
+        {
+            m_CanFire -= Time.deltaTime;
+        }
+    }
+    #endregion
 }
 

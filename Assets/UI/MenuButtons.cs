@@ -8,6 +8,10 @@ public class MenuButtons : MonoBehaviour
     {
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        if (gameObject.name == "Quit" && Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     public void PlayGame()
@@ -16,6 +20,21 @@ public class MenuButtons : MonoBehaviour
         ResetGameState();
     }
 
+    public void ResumeGame()
+    {            
+        var pauseObject = UIManager.Instance.m_Canvas.transform.Find("Pause(Clone)");
+        if (pauseObject != null)
+        {
+            DestroyImmediate(pauseObject.gameObject);
+        }
+        UIManager.Instance.PauseMenu();
+    }
+
+    public void RestartGame()
+    {
+        LoadScene("Game");
+        ResetGameState();
+    }
     public void Highscore()
     {
         LoadScene("Highscore");

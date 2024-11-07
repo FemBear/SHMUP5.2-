@@ -48,5 +48,9 @@ public class Bullet : MonoBehaviour
         {
             return;
         }
+        if (other.gameObject.CompareTag("Shield"))
+        {
+            Destroy(gameObject);
+        }
     }
 }

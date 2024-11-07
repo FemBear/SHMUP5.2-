@@ -5,17 +5,17 @@ using UnityEngine;
 public class EnemyGroup : MonoBehaviour
 {
     [SerializeField]
-    private GameObject[] enemyTypes;
+    private GameObject[] m_enemyTypes;
     [SerializeField]
-    private bool isBossGroup = false;
+    private bool m_IsBossGroup = false;
 
-    private float spawnHeight;
+    private float m_SpawnHeight;
     private List<GameObject> enemies = new List<GameObject>();
     public event System.Action OnAllEnemiesDestroyed;
 
     private void Awake()
     {
-        spawnHeight = Camera.main.ScreenToWorldPoint(new Vector3(0, Screen.height, 0)).y + 2;
+        m_SpawnHeight = Camera.main.ScreenToWorldPoint(new Vector3(0, Screen.height, 0)).y + 5;
     }
 
     public void StartGroup()
@@ -25,13 +25,13 @@ public class EnemyGroup : MonoBehaviour
 
     private IEnumerator SpawnEnemies()
     {
-        float offSetX = 8.886f;
+        float offSetX = 0f;
 
-        if (isBossGroup)
+        if (m_IsBossGroup)
         {
-            if (enemyTypes.Length > 0 && enemyTypes[0] != null)
+            if (m_enemyTypes.Length > 0 && m_enemyTypes[0] != null)
             {
-                GameObject boss = Instantiate(enemyTypes[0], new Vector3(offSetX, spawnHeight, 0), Quaternion.identity);
+                GameObject boss = Instantiate(m_enemyTypes[0], new Vector3(offSetX, m_SpawnHeight, 0), Quaternion.identity);
                 boss.GetComponent<BaseEnemy>().SetActive();
                 enemies.Add(boss);
             }
@@ -39,7 +39,7 @@ public class EnemyGroup : MonoBehaviour
         }
         else
         {
-            int formationIndex = Random.Range(0, 10);
+            int formationIndex = Random.Range(0, 5);
             CreateFormation(formationIndex, offSetX);
         }
 
@@ -48,26 +48,69 @@ public class EnemyGroup : MonoBehaviour
 
     private void CreateFormation(int formationIndex, float offSetX)
     {
-        System.Func<int, Vector3> positionFunc = formationIndex switch
+        switch (formationIndex)
         {
-            0 => (i) => new Vector3(offSetX + i * 2.0f, spawnHeight, 0),
-            1 => (i) => new Vector3(offSetX, spawnHeight + i * 2.0f, 0),
-            2 => (i) => new Vector3(offSetX + i * 2.0f, spawnHeight + i * 2.0f, 0),
-            3 => (i) => new Vector3(offSetX + i * 2.0f, spawnHeight, 0),
-            4 => (i) => new Vector3(offSetX + Mathf.Cos(i * 2.0f) * 2.0f, spawnHeight, 0),
-            5 => (i) => new Vector3(offSetX + i * 2.0f, spawnHeight, 0),
-            6 => (i) => new Vector3(offSetX + Mathf.Sin(i * 2.0f) * 2.0f, spawnHeight, 0),
-            7 => (i) => new Vector3(offSetX + i * 2.0f, spawnHeight, 0),
-            8 => (i) => new Vector3(offSetX + Mathf.Cos(i * 2.0f) * 2.0f, spawnHeight, 0),
-            9 => (i) => new Vector3(offSetX + i * 2.0f, spawnHeight, 0),
-            _ => (i) => new Vector3(offSetX, spawnHeight, 0)
-        };
+            case 0:
+                CreateLineFormation(offSetX);
+                break;
+            case 1:
+                CreateVFormation(offSetX);
+                break;
+            case 2:
+                CreateCircleFormation(offSetX);
+                break;
+            case 3:
+                CreateSquareFormation(offSetX);
+                break;
+            case 4:
+                CreateTriangleFormation(offSetX);
+                break;
+        }
+    }
 
+    private void CreateLineFormation(float offSetX)
+    {
         int enemyCount = Random.Range(3, 6);
-        GameObject formationParent = new GameObject("FormationParent");
-        formationParent.transform.position = new Vector3(offSetX, spawnHeight, 0);
+        GameObject formationParent = new GameObject("LineFormation");
+        formationParent.transform.position = new Vector3(offSetX, m_SpawnHeight, 0);
         formationParent.transform.SetParent(this.transform);
-        StartCoroutine(SpawnEnemiesWithDelay(enemyCount, formationParent, positionFunc));
+        StartCoroutine(SpawnEnemiesWithDelay(enemyCount, formationParent, i => new Vector3(offSetX, m_SpawnHeight - i * 2.5f, 0)));
+    }
+
+    private void CreateVFormation(float offSetX)
+    {
+        int enemyCount = Random.Range(3, 6);
+        GameObject formationParent = new GameObject("VFormation");
+        formationParent.transform.position = new Vector3(offSetX, m_SpawnHeight, 0);
+        formationParent.transform.SetParent(this.transform);
+        StartCoroutine(SpawnEnemiesWithDelay(enemyCount, formationParent, i => new Vector3(offSetX + (i - enemyCount / 2) * 2.5f, m_SpawnHeight - Mathf.Abs(i - enemyCount / 2) * 2.5f, 0)));
+    }
+
+    private void CreateCircleFormation(float offSetX)
+    {
+        int enemyCount = Random.Range(3, 6);
+        GameObject formationParent = new GameObject("CircleFormation");
+        formationParent.transform.position = new Vector3(offSetX, m_SpawnHeight, 0);
+        formationParent.transform.SetParent(this.transform);
+        StartCoroutine(SpawnEnemiesWithDelay(enemyCount, formationParent, i => new Vector3(offSetX + Mathf.Cos(2 * Mathf.PI * i / enemyCount) * 3, m_SpawnHeight + Mathf.Sin(2 * Mathf.PI * i / enemyCount) * 3, 0)));
+    }
+
+    private void CreateSquareFormation(float offSetX)
+    {
+        int enemyCount = 4;
+        GameObject formationParent = new GameObject("SquareFormation");
+        formationParent.transform.position = new Vector3(offSetX, m_SpawnHeight, 0);
+        formationParent.transform.SetParent(this.transform);
+        StartCoroutine(SpawnEnemiesWithDelay(enemyCount, formationParent, i => new Vector3(offSetX + i % 2 * 3, m_SpawnHeight - i / 2 * 3, 0)));
+    }
+
+    private void CreateTriangleFormation(float offSetX)
+    {
+        int enemyCount = 6;
+        GameObject formationParent = new GameObject("TriangleFormation");
+        formationParent.transform.position = new Vector3(offSetX, m_SpawnHeight, 0);
+        formationParent.transform.SetParent(this.transform);
+        StartCoroutine(SpawnEnemiesWithDelay(enemyCount, formationParent, i => new Vector3(offSetX + i % 3 * 2.5f, m_SpawnHeight - i / 3 * 2.5f, 0))); // Increased spacing
     }
 
     private IEnumerator CheckForAllEnemiesDestroyed()
@@ -82,10 +125,10 @@ public class EnemyGroup : MonoBehaviour
 
     private GameObject GetRandomEnemyType()
     {
-        if (enemyTypes.Length > 1)
+        if (m_enemyTypes.Length > 1)
         {
-            int randomIndex = Random.Range(1, enemyTypes.Length);
-            return enemyTypes[randomIndex];
+            int randomIndex = Random.Range(1, m_enemyTypes.Length);
+            return m_enemyTypes[randomIndex];
         }
         return null;
     }
@@ -98,23 +141,18 @@ public class EnemyGroup : MonoBehaviour
             GameObject enemy = Instantiate(GetRandomEnemyType(), spawnPosition, Quaternion.identity, formationParent.transform);
             enemies.Add(enemy);
 
-            // Disable collisions temporarily
             Collider2D collider = enemy.GetComponent<Collider2D>();
             if (collider != null)
             {
                 collider.enabled = false;
             }
-
             yield return new WaitForSeconds(0.5f);
-
             StartCoroutine(EnableCollisions(enemies));
         }
     }
 
     private IEnumerator EnableCollisions(List<GameObject> enemies)
     {
-        yield return new WaitForSeconds(1.0f);
-
         foreach (GameObject enemy in enemies)
         {
             Collider2D collider = enemy.GetComponent<Collider2D>();
@@ -123,6 +161,7 @@ public class EnemyGroup : MonoBehaviour
                 collider.enabled = true;
             }
         }
+        yield return null;
     }
 
     public void RemoveEnemy(GameObject enemy)

@@ -8,6 +8,7 @@ public class HealthUp : BasePickUp
     public override void Pickup()
     {
         Debug.Log("Picked up HealthUp");
-        player.m_Health += 1;
+        m_player.m_Health += 1;
+        UIManager.Instance.UpdateHealthUI(m_player.m_Health);
     }
 }

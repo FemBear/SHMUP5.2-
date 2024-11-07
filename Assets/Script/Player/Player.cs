@@ -4,6 +4,15 @@ using UnityEngine.InputSystem;
 
 public class Player : Plane
 {
+    #region Variables
+    [Header("Fuel")]
+    [SerializeField]
+    public float m_Fuel = 100;
+    [SerializeField]
+    public float m_MaxFuel = 100;
+    [SerializeField]
+    public float m_FuelConsumption = 1;
+
     [Header("ShipUpgrades")]
     [SerializeField]
     private Sprite[] m_ShipForms;
@@ -12,7 +21,7 @@ public class Player : Plane
     [SerializeField]
     private int m_BulletCount = 1;
     [SerializeField]
-    private float m_SpreadAngle = 0;
+    private float m_Spread = 0;
     [SerializeField]
     private float m_RepeatRate = 0.5f;
 
@@ -23,20 +32,45 @@ public class Player : Plane
     private float m_shieldTime = 3;
     private GameObject m_Shield;
     PlayerControls m_InputControls;
-    private Coroutine shootingCoroutine;
+    private bool isShooting = false;
+    #endregion
 
-    [Header("Audio")]
-    [SerializeField]
-    private AudioClip shootClip;
-    [SerializeField]
-    private AudioClip deathClip;
-
-    void Start()
+    #region Basics
+    private void Start()
     {
+        Initialize();
         SetUpControlls();
-        SetUp();
     }
 
+    public void Update()
+    {
+        FireRate();
+        if (m_Fuel > 0)
+        {
+            m_Fuel -= m_FuelConsumption * Time.deltaTime;
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateFuelBar(m_Fuel);
+            }
+        }
+        else
+        {
+            GameManager.Instance.GameOver();
+        }
+
+        if (isShooting && m_CanFire <= 0)
+        {
+            Fire();
+            m_CanFire = m_FireRate + m_RepeatRate;
+        }
+        else if (m_CanFire > 0)
+        {
+            m_CanFire -= Time.deltaTime;
+        }
+    }
+    #endregion
+
+    #region Input
     private void Movement(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -60,57 +94,86 @@ public class Player : Plane
     {
         if (context.performed)
         {
-            shootingCoroutine ??= StartCoroutine(ShootingRoutine());
+            isShooting = true;
         }
         else if (context.canceled)
         {
-            if (shootingCoroutine != null)
-            {
-                StopCoroutine(shootingCoroutine);
-                shootingCoroutine = null;
-            }
+            isShooting = false;
         }
     }
 
-    private IEnumerator ShootingRoutine()
+    private void MegaBuster(InputAction.CallbackContext context)
     {
-        while (true)
+        if (context.performed && m_CanMegaBuster)
         {
-            if (m_CanFire <= 0)
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            AudioManager.Instance.PlaySFX(m_ShootClip);
+            foreach (GameObject enemy in enemies)
             {
-                Fire();
-                m_CanFire = m_FireRate + m_RepeatRate;
+                enemy.GetComponent<BaseEnemy>().TakeDamage(1000);
+                m_CanMegaBuster = false;
+            }
+        }
+    }
+    #endregion
+
+    #region Shooting
+    public override void Fire()
+    {
+        if (m_BulletSpawn != null)
+        {
+            AudioManager.Instance.PlaySFX(m_ShootClip);
+            if (m_BulletCount > 1)
+            {
+                float spreadAngle = m_Spread / (m_BulletCount - 1);
+                for (int i = 0; i < m_BulletCount; i++)
+                {
+                    float angle = -m_Spread / 2 + spreadAngle * i;
+                    Quaternion rotation = Quaternion.Euler(0, 0, angle);
+                    GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, rotation);
+                    bullet.GetComponent<Bullet>().SetBullet(gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
+                }
             }
             else
             {
-                m_CanFire -= Time.deltaTime;
+                GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, Quaternion.identity);
+                bullet.GetComponent<Bullet>().SetBullet(gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
             }
-            yield return null;
         }
     }
+    #endregion
+
+    #region Damage
 
     void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag("Enemy") && !m_isInvulnerable)
         {
             TakeDamage(1);
+            Destroy(other.gameObject);
         }
     }
-
-    public override void Fire()
+    internal override void TakeDamage(int damage)
     {
-        m_CanFire = m_FireRate * Time.deltaTime + m_RepeatRate;
-        for (int i = 0; i < m_BulletCount; i++)
+        if (!m_isInvulnerable)
         {
-            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, m_BulletSpawn.rotation);
-            bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
-            if (m_BulletCount > 1)
+            m_Health -= damage;
+            if (m_Health <= 0)
             {
-                bullet.transform.Rotate(0, 0, -m_SpreadAngle / 2 + m_SpreadAngle * i / (m_BulletCount - 1));
+                if (m_ExplosionFX != null)
+                {
+                    Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
+                }
+                AudioManager.Instance.PlaySFX(m_DeathClip);
+                GameManager.Instance.GameOver();
+
+                Destroy(gameObject);
             }
+            UIManager.Instance.UpdateHealthUI(m_Health);
+            StartCoroutine(Invulnerability(m_iFrames, m_iFrameDuration));
         }
-        AudioManager.Instance.PlaySFX(shootClip);
     }
+    #endregion
 
     #region ShipUpgradesAndPowerUps
     [ContextMenu("ShipUpgrade")]
@@ -125,19 +188,19 @@ public class Player : Plane
         {
             case 0:
                 m_BulletCount = 1;
-                m_SpreadAngle = 0;
+                m_Spread = 0;
                 m_BulletSpeed = 10;
                 m_Damage = 1;
                 break;
             case 1:
                 m_BulletCount = 2;
-                m_SpreadAngle = 15;
+                m_Spread = 15;
                 m_BulletSpeed = 15;
                 m_Damage = 2;
                 break;
             case 2:
                 m_BulletCount = 3;
-                m_SpreadAngle = 30;
+                m_Spread = 30;
                 m_BulletSpeed = 20;
                 m_Damage = 3;
                 break;
@@ -146,23 +209,19 @@ public class Player : Plane
 
     public IEnumerator Shield()
     {
-        m_Shield.SetActive(true);
-        m_isInvulnerable = true;
+        m_Shield.GetComponent<SpriteRenderer>().enabled = true;
         yield return new WaitForSeconds(m_shieldTime);
-        m_Shield.SetActive(false);
-        m_isInvulnerable = false;
+        m_Shield.GetComponent<SpriteRenderer>().enabled = false;
     }
 
-    #endregion
-
-    #region MegaBuster
-    private void MegaBuster(InputAction.CallbackContext context)
+    public void AddFuel(float fuel)
     {
-        if (context.performed && m_CanMegaBuster)
+        m_Fuel += fuel;
+        if (m_Fuel > m_MaxFuel)
         {
-            Debug.Log("MegaBuster");
-            m_CanMegaBuster = false;
+            m_Fuel = m_MaxFuel;
         }
+        UIManager.Instance.UpdateFuelBar(m_Fuel);
     }
 
     public void MegaBusterActive()
@@ -174,54 +233,38 @@ public class Player : Plane
     #region SetUp
     private void SetUpControlls()
     {
-        m_InputControls = new PlayerControls();
-        m_InputControls.Player.Move.Enable();
-        m_InputControls.Player.WASD.Enable();
-        m_InputControls.Player.Shoot.Enable();
-        m_InputControls.Player.MegaBuster.Enable();
-        m_InputControls.Player.Pauze.Enable();
+        m_InputControls = InputManager.Instance.GetPlayerControls();
         m_InputControls.Player.Shoot.performed += Shoot;
         m_InputControls.Player.Shoot.canceled += Shoot;
         m_InputControls.Player.MegaBuster.performed += MegaBuster;
         m_InputControls.Player.WASD.performed += Movement;
         m_InputControls.Player.Move.performed += Movement;
         m_InputControls.Player.WASD.canceled += Movement;
-        m_InputControls.Player.Pauze.performed += PauzeGame;
+        m_InputControls.Player.Move.canceled += Movement;
     }
 
-    private void SetUp()
+    private void Initialize()
     {
         m_Rb = GetComponent<Rigidbody2D>();
         m_Collider = GetComponent<BoxCollider2D>();
         m_SpriteRenderer = GetComponent<SpriteRenderer>();
-        shootClip = Resources.Load<AudioClip>("$Sound/Effects/Shoot");
-        deathClip = Resources.Load<AudioClip>("$Sound/Effects/Death");
-        m_BulletSpawn = transform.GetChild(0);
-        m_Shield = transform.GetChild(1).gameObject;
-        m_Shield.SetActive(false);
-        transform.position = new Vector3(8.8886f, -4, 0);
-    }
-
-    private void PauzeGame(InputAction.CallbackContext context)
-    {
-        if (context.performed)
+        m_ShootClip = Resources.Load<AudioClip>($"Sound/Effects/Shoot");
+        m_DeathClip = Resources.Load<AudioClip>($"Sound/Effects/Death");
         {
-            UIManager.Instance.TogglePauseMenu();
-        }
-    }
-
-    void OnDestroy()
-    {
-        if (m_ExplosionFX != null)
-        {
-            Instantiate(m_ExplosionFX, transform.position, Quaternion.identity);
-        }
-        AudioManager.Instance.PlaySFX(deathClip);
-        GameManager.Instance.GameOver();
-
-        if (shootingCoroutine != null)
-        {
-            StopCoroutine(shootingCoroutine);
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowCursor(false);
+            }
+            m_BulletSpawn = transform.GetChild(0).transform;
+            m_Shield = transform.GetChild(1).gameObject;
+            m_Shield.SetActive(false);
+            transform.position = new Vector3(0, -3.5f, 0);
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateHealthUI(m_Health);
+                UIManager.Instance.UpdateScoreAndComboUI(0, 1);
+                UIManager.Instance.UpdateFuelBar(m_Fuel);
+            }
         }
     }
     #endregion

@@ -12,7 +12,9 @@ GameObject:
   - component: {fileID: 3846548708445961176}
   - component: {fileID: 3930642514524121445}
   - component: {fileID: 1830385669197219998}
-  m_Layer: 0
+  - component: {fileID: -5959009052031946440}
+  - component: {fileID: 73435224040601115}
+  m_Layer: 6
   m_Name: MegaBlastUp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -98,17 +100,17 @@ BoxCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 0
   m_ForceReceiveLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 0
   m_ContactCaptureLayers:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -143,3 +145,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c7b24fb14a06e042aa0103e75b3bbfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-5959009052031946440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8052970893497363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a0c1cea1d6b0bf48819bb576be98b00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_DestroyTime: 7
+--- !u!50 &73435224040601115
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8052970893497363}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 7

@@ -6,143 +6,190 @@ using Random = UnityEngine.Random;
 
 public class RangedEnemy1 : BaseEnemy
 {
-    private Vector2 m_screenSpace;
-    private Vector2 m_enemyPosition;
-    private float m_timer = 1.0f;
-    private int m_ProjectileCount = 1;
+    #region Variables
+    private Vector2 m_ScreenSpace;
+    private int m_RandomShot;
+    private int m_RandomMove;
+    private float m_MinDistanceToPlayer = 5.0f;
+    private int m_BulletCount = 1;
     private int m_Spread = 5;
     private bool m_IsMoving = false;
+    #endregion
 
+    #region Basics
     public override void Start()
     {
         base.Start();
-        m_Speed = 1 + (GameManager.Instance.m_Wave / 4);
-        m_ProjectileCount = 1 + Mathf.RoundToInt(GameManager.Instance.m_Wave / 2);
-        m_FireRate = Mathf.Max(0.1f, m_FireRate - (GameManager.Instance.m_Wave * 0.1f));
-        if (m_FireRate < 0.25f)
-        {
-            m_FireRate = 0.25f;
-        }
-        m_enemyPosition = transform.position;
-        m_screenSpace = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
-        m_BulletSpawn = transform.GetChild(0);
-        if (m_Target == null)
-        {
-            m_Target = GameObject.Find("Player");
-            if (m_Target == null)
-            {
-                Debug.LogError("Target not assigned and Player object not found for " + gameObject.name);
-            }
-        }
+        m_CanFire = m_FireRate;
     }
-
     public override void Update()
     {
         base.Update();
-        m_timer += Time.deltaTime;
-        m_enemyPosition = transform.position;
-
+        FireRate();
+        if (m_EnemyState == EnemyState.Active)
+        {
+            RandomAttack();
+        }
         if (m_EnemyState == EnemyState.Active && !m_IsMoving)
         {
-            m_IsMoving = true;
-            StartCoroutine(MovementSideToSide());
-            int random = Random.Range(0, 2);
-            switch (random)
-            {
-                case 0:
-                    Shoot();
-                    break;
-                case 1:
-                    ShootAndAim();
-                    break;
-            }
+            RandomMove();
         }
     }
+    #endregion
 
-
+    #region Attack
     private void Shoot()
     {
         m_Rb.freezeRotation = true;
-        if (m_CanFire <= 0 && m_BulletSpawn != null)
+        if (m_CanFire == 0)
         {
             m_CanFire = m_FireRate;
-            if (m_ProjectileCount > 1)
-            {
-                float spreadAngle = m_Spread / (m_ProjectileCount - 1);
-                for (int i = 0; i < m_ProjectileCount; i++)
-                {
-                    float angle = -m_Spread / 2 + spreadAngle * i;
-                    Quaternion rotation = Quaternion.Euler(0, 0, 180 + angle);
-                    GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, rotation);
-                    bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
-                }
-            }
-            else
-            {
-                Quaternion rotation = Quaternion.Euler(0, 0, 180);
-                GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, rotation);
-                bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
-            }
-            AudioManager.Instance.PlaySFX(attackClip);
+            Fire(180);
+            AudioManager.Instance.PlaySFX(m_ShootClip);
         }
     }
 
     private void ShootAndAim()
     {
         m_Rb.freezeRotation = false;
-        if (m_CanFire <= 0 && m_BulletSpawn != null)
+        if (m_CanFire == 0)
         {
-            Quaternion _lookAt = Quaternion.LookRotation(Vector3.forward, m_Target.transform.position - transform.position);
-            transform.rotation = _lookAt;
+            Quaternion lookAt = Quaternion.LookRotation(Vector3.forward, m_Target.transform.position - transform.position);
+            transform.rotation = lookAt;
             m_CanFire = m_FireRate;
-            if (m_ProjectileCount > 1)
-            {
-                float spreadAngle = m_Spread / (m_ProjectileCount - 1);
-                for (int i = 0; i < m_ProjectileCount; i++)
-                {
-                    float angle = -m_Spread / 2 + spreadAngle * i;
-                    Quaternion bulletRotation = Quaternion.Euler(_lookAt.eulerAngles.x, _lookAt.eulerAngles.y, _lookAt.eulerAngles.z + angle);
-                    GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, bulletRotation);
-                    bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
-                }
-            }
-            else
-            {
-                Quaternion bulletRotation = Quaternion.Euler(_lookAt.eulerAngles.x, _lookAt.eulerAngles.y, _lookAt.eulerAngles.z);
-                GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, bulletRotation);
-                bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
-            }
-            AudioManager.Instance.PlaySFX(attackClip);
+            Fire(lookAt.eulerAngles.z);
+            AudioManager.Instance.PlaySFX(m_ShootClip);
             ResetRotation();
         }
     }
 
-
-    private IEnumerator MovementSideToSide()
+    private void Fire(float baseAngle)
     {
-        m_Rb.freezeRotation = true;
-        bool isAtHeight = false;
-        // Choose a random position on the Y-axis on screen
-        float randomY = Random.Range(0, m_screenSpace.y);
-        Vector2 newTargetPosition = new Vector2(transform.position.x, randomY);
-
-        while (Vector2.Distance(transform.position, newTargetPosition) > 0.1f)
+        if (m_Bullet == null || m_BulletSpawn == null)
         {
-            transform.position = Vector2.Lerp(transform.position, newTargetPosition, Time.deltaTime * m_Speed);
-            //make it wait until it reaches the height
-            if (Mathf.Abs(transform.position.y - randomY) < 0.1f)
+            Debug.LogError("Bullet or BulletSpawn is not assigned.");
+            return;
+        }
+
+        if (m_BulletCount > 1)
+        {
+            float spreadAngle = m_Spread / (m_BulletCount - 1);
+            for (int i = 0; i < m_BulletCount; i++)
             {
-                isAtHeight = true;
+                float angle = -m_Spread / 2 + spreadAngle * i;
+                Quaternion rotation = Quaternion.Euler(0, 0, baseAngle + angle);
+                GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, rotation);
+                bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
             }
+        }
+        else
+        {
+            Quaternion rotation = Quaternion.Euler(0, 0, baseAngle);
+            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, rotation);
+            bullet.GetComponent<Bullet>().SetBullet(this.gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
+        }
+    }
+    #endregion
+
+    #region Movement
+    private IEnumerator MoveSideToSide()
+    {
+        // Choose a random Y position once
+        float randomY = Random.Range(-m_ScreenSpace.y, m_ScreenSpace.y - 2);
+        Vector2 targetPosition = new Vector2(transform.position.x, randomY);
+        
+        // Move to the random Y position
+        while (Vector2.Distance(transform.position, targetPosition) > 0.1f)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, targetPosition, m_Speed * Time.deltaTime);
             yield return null;
         }
-        while (m_Health > 0 && isAtHeight == true)
+
+        // Start moving side to side at the chosen Y position
+        while (m_Health > 0)
         {
-            float pingPongX = Mathf.PingPong(m_timer * m_Speed, m_screenSpace.x);
-            Vector2 newPosition = new Vector2(pingPongX, transform.position.y);
-            transform.position = Vector2.Lerp(transform.position, newPosition, Time.deltaTime * m_Speed);
-            yield return null;
+            float targetX = m_ScreenSpace.x;
+            while (transform.position.x < targetX)
+            {
+                transform.position = Vector2.MoveTowards(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
+                yield return null;
+            }
+
+            targetX = -m_ScreenSpace.x;
+            while (transform.position.x > targetX)
+            {
+                transform.position = Vector2.MoveTowards(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
+                yield return null;
+            }
         }
     }
 
+    private IEnumerator MoveToTarget()
+    {
+        m_Rb.freezeRotation = true;
+        while (m_Health > 0)
+        {
+            if (m_Target != null)
+            {
+                Transform targetTransform = m_Target.transform;
+                float distanceToPlayer = Vector2.Distance(transform.position, targetTransform.position);
+                if (distanceToPlayer > m_MinDistanceToPlayer)
+                {
+                    Vector2 newTargetPosition = targetTransform.position;
+                    float step = m_Speed * Time.deltaTime;
+                    Vector2 newPosition = Vector2.MoveTowards(transform.position, newTargetPosition, step);
+                    if (!float.IsNaN(newPosition.x) && !float.IsNaN(newPosition.y))
+                    {
+                        transform.position = newPosition;
+                    }
+                }
+            }
+            yield return null;
+        }
+    }
+    #endregion
+
+    #region Utility/Setup
+    private void RandomAttack()
+    {
+        m_RandomShot = Random.Range(0, 2);
+        switch (m_RandomShot)
+        {
+            case 0:
+                Shoot();
+                break;
+            case 1:
+                ShootAndAim();
+                break;
+        }
+    }
+
+    private void RandomMove()
+    {
+        m_RandomMove = Random.Range(0, 2);
+        switch (m_RandomMove)
+        {
+            case 0:
+                StartCoroutine(MoveSideToSide());
+                break;
+            case 1:
+                StartCoroutine(MoveToTarget());
+                m_IsMoving = true;
+                break;
+        }
+    }
+
+    protected override void Initialize()
+    {
+        base.Initialize();
+        m_BulletCount = 1 + Mathf.RoundToInt(GameManager.Instance.m_Wave / 2);
+        m_Speed = Mathf.Min(1 + (GameManager.Instance.m_Wave / 4), 10);
+        m_FireRate = Mathf.Max(0.1f, m_FireRate - (GameManager.Instance.m_Wave * 0.1f));
+        m_ScreenSpace = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+        if (m_FireRate < 0.25f)
+        {
+            m_FireRate = 0.25f;
+        }
+    }
+    #endregion
 }

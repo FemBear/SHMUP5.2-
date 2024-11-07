@@ -8,6 +8,6 @@ public class ShieldUp : BasePickUp
     public override void Pickup()
     {
         Debug.Log("Picked up ShieldUp");
-        player.Shield();
+        m_player.Shield();
     }
 }

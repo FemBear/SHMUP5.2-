@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System.IO;
 using Random = UnityEngine.Random;
+
 [System.Serializable]
 public class HighscoreEntry
 {
@@ -18,6 +19,7 @@ public class HighscoreEntry
 
 public class HighscoreManager : Singleton<HighscoreManager>
 {
+    #region Variables
     public int score;
     public string playerName;
     [SerializeField]
@@ -26,15 +28,18 @@ public class HighscoreManager : Singleton<HighscoreManager>
     public const int maxHighscores = 10;
     public HighscoreEntry lastEntry;
     public int position;
+    #endregion
 
-
+    #region Basics
     new void Awake()
     {
         base.Awake();
         filePath = Path.Combine(Application.persistentDataPath, "highscores.json");
         LoadHighscores();
     }
+    #endregion
 
+    #region Save/Load
     public void AddHighscore()
     {
         playerName = GameManager.Instance.m_PlayerName;
@@ -43,32 +48,11 @@ public class HighscoreManager : Singleton<HighscoreManager>
         SaveHighscores();
     }
 
-    [ContextMenu("Add Test Highscore")]
-    public void AddTestHighscore()
-    {
-        playerName = "Test";
-        score = Random.Range(1, 10000000);
-        for (int i = 0; i < 100; i++)
-        {
-            highscores.Add(new HighscoreEntry(Random.Range(1, 10000000), "Test" + i));
-        }
-        CheckEntry();
-        SaveHighscores();
-    }
-
-    void SaveHighscores()
+    public void SaveHighscores()
     {
         HighscoreList highscoreList = new HighscoreList(highscores);
         string json = JsonUtility.ToJson(highscoreList);
         File.WriteAllText(filePath, json);
-    }
-
-    [ContextMenu("Reset Highscores")]
-    void ResetHighscores()
-    {
-        highscores = new List<HighscoreEntry>();
-        lastEntry = null;
-        SaveHighscores();
     }
 
     void LoadHighscores()
@@ -106,7 +90,32 @@ public class HighscoreManager : Singleton<HighscoreManager>
         Debug.Log("after sort" + position);
         SaveHighscores();
     }
+    #endregion
 
+    #region Test
+    [ContextMenu("Add Test Highscore")]
+    public void AddTestHighscore()
+    {
+        playerName = "Test";
+        score = Random.Range(1, 10000000);
+        for (int i = 0; i < 100; i++)
+        {
+            highscores.Add(new HighscoreEntry(Random.Range(1, 10000000), "Test" + i));
+        }
+        CheckEntry();
+        SaveHighscores();
+    }
+
+    [ContextMenu("Reset Highscores")]
+    void ResetHighscores()
+    {
+        highscores = new List<HighscoreEntry>();
+        lastEntry = null;
+        SaveHighscores();
+    }
+    #endregion
+
+    #region Utility/Setup
     public List<HighscoreEntry> GetHighscores()
     {
         return highscores;
@@ -122,4 +131,5 @@ public class HighscoreManager : Singleton<HighscoreManager>
             this.highscores = highscores;
         }
     }
+    #endregion
 }

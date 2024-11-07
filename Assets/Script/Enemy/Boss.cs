@@ -1,64 +1,61 @@
 using System.Collections;
-using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class Boss : BaseEnemy
 {
+    #region Variables
     [SerializeField]
-    int m_Spread = 5;
+    private int m_Spread = 5;
     [SerializeField]
-    int m_BulletCount = 5;
+    private int m_BulletCount = 5;
     [SerializeField]
-    float m_MoveSpeed = 2.0f;
+    private float m_MoveSpeed = 2.0f;
     [SerializeField]
-    GameObject m_Ships;
+    private GameObject m_Ships;
     [SerializeField]
-    int m_SmallEnemyCount = 3;
-
-    private enum MovementPattern { Static, LeftRight, Circular }
-    private MovementPattern m_MovementPattern;
-
+    private int m_SmallEnemyCount = 3;
+    private int m_RandomMove;
     private Vector3 m_StartPosition;
-    private AudioClip SpawnClip;
-
+    private AudioClip m_SpawnClip;
+    #endregion
     public override void Start()
     {
         base.Start();
-        SpawnClip = Resources.Load<AudioClip>("Sound/Effects/Deploy");
-        m_Health = (4 * GameManager.Instance.m_Wave) + 12;
-        m_Speed = 1.5f;
-        m_Damage = 10;
-        m_BulletSpeed = 5;
-        m_BulletCount = GameManager.Instance.m_Wave + 2;
-        m_StartPosition = transform.position;
-        m_MovementPattern = (MovementPattern)Random.Range(0, 2);
+        m_CanFire = m_FireRate;
     }
 
+    #region Basics
     public override void Update()
     {
         base.Update();
         if (m_EnemyState == EnemyState.Active)
         {
             Move();
-            Fire();
+            if (m_CanFire <= 0)
+            {
+                Fire();
+            }
         }
     }
+    #endregion
 
+    #region Movement
     private void Move()
     {
-        switch (m_MovementPattern)
+        switch (m_RandomMove)
         {
-            case MovementPattern.Static:
+            case 0:
                 break;
-            case MovementPattern.LeftRight:
+            case 1:
                 float screenspacex = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, 0)).x;
                 transform.position = m_StartPosition + new Vector3(Mathf.PingPong(Time.time * m_MoveSpeed, screenspacex), 0, 0);
                 break;
         }
     }
-    
+    #endregion
 
+    #region Attack
     public override void Fire()
     {
         int random = Random.Range(0, 4);
@@ -81,14 +78,14 @@ public class Boss : BaseEnemy
 
     private void Shoot()
     {
-        if (m_Target != null)
+        if (m_BulletSpawn != null)
         {
-            m_Rb.freezeRotation = true;
-            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.transform.position, Quaternion.identity);
-            bullet.GetComponent<Rigidbody2D>().velocity = Vector2.down * m_BulletSpeed;
-            AudioManager.Instance.PlaySFX(attackClip);
+            GameObject bullet = Instantiate(m_Bullet, m_BulletSpawn.position, Quaternion.identity);
+            bullet.GetComponent<Bullet>().SetBullet(gameObject, m_Damage, m_BulletSpeed, m_LifeTime);
+            AudioManager.Instance.PlaySFX(m_ShootClip);
         }
     }
+
 
     private void ShootAtPlayer()
     {
@@ -101,7 +98,7 @@ public class Boss : BaseEnemy
             bullet.GetComponent<Rigidbody2D>().velocity = direction * m_BulletSpeed;
             StartCoroutine(ResetRotation());
             m_Rb.freezeRotation = true;
-            AudioManager.Instance.PlaySFX(attackClip);
+            AudioManager.Instance.PlaySFX(m_ShootClip);
         }
     }
 
@@ -121,7 +118,7 @@ public class Boss : BaseEnemy
             }
             StartCoroutine(ResetRotation());
             m_Rb.freezeRotation = true;
-            AudioManager.Instance.PlaySFX(attackClip);
+            AudioManager.Instance.PlaySFX(m_ShootClip);
         }
     }
 
@@ -132,6 +129,22 @@ public class Boss : BaseEnemy
             Vector3 spawnPosition = new Vector3(transform.position.x + i, transform.position.y, transform.position.z);
             Instantiate(m_Ships, spawnPosition, Quaternion.identity);
         }
-        AudioManager.Instance.PlaySFX(SpawnClip);
+        AudioManager.Instance.PlaySFX(m_SpawnClip);
     }
+    #endregion
+
+    #region Utility/Setup
+    protected override void Initialize()
+    {
+        base.Initialize();
+        m_SpawnClip = Resources.Load<AudioClip>("Sound/Effects/Deploy");
+        m_Health = (4 * GameManager.Instance.m_Wave) + 12;
+        m_Speed = 1.5f;
+        m_Damage = 10;
+        m_BulletSpeed = 5;
+        m_BulletCount = GameManager.Instance.m_Wave + 2;
+        m_RandomMove = Random.Range(0, 2);
+        m_StartPosition = transform.position;
+    }
+    #endregion
 }

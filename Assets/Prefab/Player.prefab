@@ -41,9 +41,10 @@ GameObject:
   m_Component:
   - component: {fileID: 532173960814306699}
   - component: {fileID: 4226031464960924266}
+  - component: {fileID: 3515137793455124204}
   m_Layer: 0
   m_Name: Shield
-  m_TagString: Untagged
+  m_TagString: Shield
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -115,6 +116,51 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!61 &3515137793455124204
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6739170685073757039}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.29555556, y: 0.24}
+    newSize: {x: 1.33, y: 1.08}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.29555556, y: 0.24}
+  m_EdgeRadius: 0
 --- !u!1 &7868668619552183059
 GameObject:
   m_ObjectHideFlags: 0
@@ -170,6 +216,7 @@ MonoBehaviour:
   m_Speed: 5
   m_FireRate: 0.25
   m_CanFire: 0
+  m_ExplosionFX: {fileID: 8268951385132960516, guid: 003e05c600dd44743a8a2f1c8586b844, type: 3}
   m_padding: 1
   m_isInvulnerable: 0
   m_iFrames: 3
@@ -178,16 +225,20 @@ MonoBehaviour:
   m_Damage: 1
   m_BulletSpeed: 10
   m_LifeTime: 2
+  m_ShootClip: {fileID: 0}
+  m_DeathClip: {fileID: 0}
+  m_Fuel: 100
+  m_MaxFuel: 100
+  m_FuelConsumption: 1
   m_ShipForms:
   - {fileID: 21300000, guid: ddb13529c369313429132737048d8808, type: 3}
   - {fileID: 21300000, guid: 9a0c02e45c2869d4980d9fa16e469dad, type: 3}
   - {fileID: 21300000, guid: d0ac1de90b7b3fd4596bb96ac4c6a360, type: 3}
   m_ShipForm: 0
   m_BulletCount: 1
-  m_SpreadAngle: 0
+  m_Spread: 0
   m_RepeatRate: 0.5
   m_CanMegaBuster: 0
-  m_ShieldUp: 0
   m_shieldTime: 3
 --- !u!114 &8540527463187343793
 MonoBehaviour:
@@ -264,7 +315,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7868668619552183059}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0

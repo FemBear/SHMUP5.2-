@@ -1,100 +1,105 @@
 using UnityEngine;
 using System.Collections;
 using Unity.VisualScripting;
-using UnityEditor.Callbacks;
 
 public class MovingEnemyBase : BaseEnemy
 {
-    private Vector2 m_screenSpace;
-    private Vector2 m_enemyPosition;
-    private float m_timer = 1.0f;
-    [SerializeField]
-    float m_SpeedY = 1.0f;
+    #region Variables
+    private Vector2 m_ScreenSpace;
+    private float m_Timer = 1.0f;
     private bool m_IsMoving = false;
+    private int m_RandomMove;
+    #endregion
 
+    #region Basics
     public override void Start()
     {
         base.Start();
-        if (m_Target == null)
-        {
-            m_Target = GameObject.Find("Player");
-            if (m_Target == null)
-            {
-                Debug.LogError("Target not assigned and Player object not found for " + gameObject.name);
-            }
-        }
+        m_CanFire = m_FireRate; // Initialize m_CanFire
     }
-
     public override void Update()
     {
         base.Update();
-        m_timer += Time.deltaTime;
-        m_enemyPosition = transform.position;
-
+        FireRate();
+        m_Timer += Time.deltaTime;
         if (m_EnemyState == EnemyState.Active && !m_IsMoving)
         {
             m_IsMoving = true;
-            int random = Random.Range(0, 2);
-            if (random == 0)
-            {
-                StartCoroutine(MovementSideToSide());
-            }
-            else
-            {
-                StartCoroutine(MovementSideToTarget());
-            }
+            RandomMovement();
+        }
+    }
+    #endregion
+
+    #region Movement
+    private void RandomMovement()
+    {
+        switch (m_RandomMove)
+        {
+            case 0:
+                StartCoroutine(MoveSideToSide());
+                break;
+            case 1:
+                StartCoroutine(MoveToTarget());
+                break;
         }
     }
 
-    private IEnumerator MovementSideToSide()
+    private IEnumerator MoveSideToSide()
     {
-        m_Rb.freezeRotation = true;
-        bool isAtHeight = false;
-        // Choose a random position on the Y-axis on screen
-        float randomY = Random.Range(0, m_screenSpace.y - 3);
-        Vector2 newTargetPosition = new Vector2(transform.position.x, randomY);
+        // Choose a random Y position once
+        float randomY = Random.Range(-m_ScreenSpace.y, m_ScreenSpace.y - 2);
+        Vector2 targetPosition = new Vector2(transform.position.x, randomY);
 
-        while (Vector2.Distance(transform.position, newTargetPosition) > 0.1f)
+        // Move to the random Y position
+        while (Vector2.Distance(transform.position, targetPosition) > 0.1f)
         {
-            transform.position = Vector2.Lerp(transform.position, newTargetPosition, Time.deltaTime * m_Speed);
-            //make it wait until it reaches the height
-            if (Mathf.Abs(transform.position.y - randomY) < 0.1f)
-            {
-                isAtHeight = true;
-            }
+            transform.position = Vector2.MoveTowards(transform.position, targetPosition, m_Speed * Time.deltaTime);
             yield return null;
         }
-        while (m_Health > 0 && isAtHeight == true)
-        {
-            float pingPongX = Mathf.PingPong(m_timer * m_Speed, m_screenSpace.x);
-            Vector2 newPosition = new Vector2(pingPongX, transform.position.y);
-            transform.position = Vector2.Lerp(transform.position, newPosition, Time.deltaTime * m_Speed);
-            yield return null;
-        }
-    }
 
-    private IEnumerator MovementSideToTarget()
-    {
-        m_Rb.freezeRotation = true;
+        // Start moving side to side at the chosen Y position
         while (m_Health > 0)
         {
-            if (m_Target != null)
+            float targetX = m_ScreenSpace.x;
+            while (transform.position.x < targetX)
             {
-                if (Vector2.Distance(transform.position, m_Target.transform.position) > 0.1f)
-                {
-                    Vector2 newTargetPosition = m_Target.transform.position;
-                    transform.position = Vector2.Lerp(transform.position, newTargetPosition, Time.deltaTime * m_Speed / 3);
-                }
+                transform.position = Vector2.MoveTowards(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
+                yield return null;
             }
+
+            targetX = -m_ScreenSpace.x;
+            while (transform.position.x > targetX)
+            {
+                transform.position = Vector2.MoveTowards(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
+                yield return null;
+            }
+        }
+    }
+
+    private IEnumerator MoveToTarget()
+    {
+        // Use m_Target as the target position
+        Vector2 targetPosition = m_Target.transform.position;
+
+        // Move towards the target position
+        while (Vector2.Distance(transform.position, targetPosition) > 0.1f)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, targetPosition, m_Speed * Time.deltaTime);
             yield return null;
         }
+
+        m_IsMoving = false;
     }
-    void OnCollisionEnter2D(Collision2D other)
+
+    #endregion
+
+    #region Utility/Setup
+    protected override void Initialize()
     {
-        if (other.gameObject.CompareTag("Player") && other.gameObject.GetComponent<Player>().m_isInvulnerable == false)
-        {
-            other.gameObject.GetComponent<Player>().TakeDamage(1);
-            Destroy(gameObject);
-        }
+        base.Initialize();
+        m_ScreenSpace = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+        m_Speed = Mathf.Min(1 + (GameManager.Instance.m_Wave / 4), 10) / 3;
+        m_RandomMove = Random.Range(0, 2);
     }
+    #endregion
 }

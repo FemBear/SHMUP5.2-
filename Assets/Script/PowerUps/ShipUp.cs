@@ -7,6 +7,6 @@ public class ShipUp : BasePickUp
     public override void Pickup()
     {
         Debug.Log("Picked up ShipUp");
-        player.ShipUpgrade();
+        m_player.ShipUpgrade();
     }
 }

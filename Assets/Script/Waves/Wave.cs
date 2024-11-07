@@ -33,8 +33,7 @@ public class Wave : MonoBehaviour
 
     private void SpawnGroup(EnemyGroup group)
     {
-        EnemyGroup enemyGroup = Instantiate(group);
-        enemyGroup.transform.SetParent(transform);
+        EnemyGroup enemyGroup = Instantiate(group, transform.position, Quaternion.identity, transform);
         enemyGroup.OnAllEnemiesDestroyed += HandleAllEnemiesDestroyed;
         enemyGroup.StartGroup();
     }
@@ -44,10 +43,9 @@ public class Wave : MonoBehaviour
         currentGroupIndex++;
         if (currentGroupIndex >= enemyGroups.Length)
         {
-            isBossWave = true;
             OnAllEnemyGroupsCompleted();
         }
-        else
+        else if (currentGroupIndex < enemyGroups.Length)
         {
             SpawnGroup(enemyGroups[currentGroupIndex]);
         }
@@ -55,12 +53,12 @@ public class Wave : MonoBehaviour
 
     private void OnAllEnemyGroupsCompleted()
     {
-        if (isBossWave)
+        if (!isBossWave)
         {
             SpawnGroup(bossGroup);
-            isBossWave = false;
+            isBossWave = true;
         }
-        else
+        else if (isBossWave)
         {
             OnWaveCompleted?.Invoke();
         }

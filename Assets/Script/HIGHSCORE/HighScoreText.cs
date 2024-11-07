@@ -17,7 +17,7 @@ public class HighScoreText : MonoBehaviour
         highscores = HighscoreManager.Instance.GetHighscores();
         UpdateHighscoreText();
     }
-    
+
     [ContextMenu("Update Highscore Text")]
     void UpdateHighscoreText()
     {
