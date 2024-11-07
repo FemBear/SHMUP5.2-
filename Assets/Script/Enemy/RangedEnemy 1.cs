@@ -95,13 +95,13 @@ public class RangedEnemy1 : BaseEnemy
     private IEnumerator MoveSideToSide()
     {
         // Choose a random Y position once
-        float randomY = Random.Range(-m_ScreenSpace.y, m_ScreenSpace.y - 2);
+        float randomY = Random.Range(-m_ScreenSpace.y, m_ScreenSpace.y);
         Vector2 targetPosition = new Vector2(transform.position.x, randomY);
-        
+
         // Move to the random Y position
         while (Vector2.Distance(transform.position, targetPosition) > 0.1f)
         {
-            transform.position = Vector2.MoveTowards(transform.position, targetPosition, m_Speed * Time.deltaTime);
+            transform.position = Vector2.Lerp(transform.position, targetPosition, m_Speed * Time.deltaTime);
             yield return null;
         }
 
@@ -111,14 +111,14 @@ public class RangedEnemy1 : BaseEnemy
             float targetX = m_ScreenSpace.x;
             while (transform.position.x < targetX)
             {
-                transform.position = Vector2.MoveTowards(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
+                transform.position = Vector2.Lerp(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
                 yield return null;
             }
 
             targetX = -m_ScreenSpace.x;
             while (transform.position.x > targetX)
             {
-                transform.position = Vector2.MoveTowards(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
+                transform.position = Vector2.Lerp(transform.position, new Vector2(targetX, randomY), m_Speed * Time.deltaTime);
                 yield return null;
             }
         }

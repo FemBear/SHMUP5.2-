@@ -47,7 +47,6 @@ public class GameManager : Singleton<GameManager>
         m_PlayerName = playerName;
         Debug.Log("Player Name: " + m_PlayerName);
         UIManager.Instance.m_InputField.text = "Name Set";
-        NextScene();
     }
 
     private void ResetCombo()

@@ -97,9 +97,9 @@ MonoBehaviour:
   m_DeathClip: {fileID: 0}
   m_EnemyState: 0
   m_Target: {fileID: 0}
-  m_Score: 10
+  m_Score: 200
   m_PowerUp: []
-  m_DropRate: 10
+  m_DropRate: 25
 --- !u!212 &9135505032623328557
 SpriteRenderer:
   m_ObjectHideFlags: 0

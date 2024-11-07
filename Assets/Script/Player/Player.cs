@@ -94,6 +94,10 @@ public class Player : Plane
     {
         if (context.performed)
         {
+            if (m_CanFire <= 0)
+            {
+            Fire();
+            }
             isShooting = true;
         }
         else if (context.canceled)
@@ -158,6 +162,9 @@ public class Player : Plane
         if (!m_isInvulnerable)
         {
             m_Health -= damage;
+            if(Gamepad.current != null)
+            {
+            }
             if (m_Health <= 0)
             {
                 if (m_ExplosionFX != null)
@@ -266,6 +273,14 @@ public class Player : Plane
                 UIManager.Instance.UpdateFuelBar(m_Fuel);
             }
         }
+    }
+
+    private IEnumerator VibrateController()
+    {
+        Gamepad.current.SetMotorSpeeds(0.5f, 0.5f);
+        yield return new WaitForSeconds(0.1f);
+        Gamepad.current.SetMotorSpeeds(0, 0);
+        yield return null;
     }
     #endregion
 }

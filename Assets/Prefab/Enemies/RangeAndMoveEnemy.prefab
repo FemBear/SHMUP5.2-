@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Health: 2
   m_Speed: 1
-  m_FireRate: 1
+  m_FireRate: 3
   m_CanFire: 0
   m_ExplosionFX: {fileID: 8268951385132960516, guid: 003e05c600dd44743a8a2f1c8586b844, type: 3}
   m_padding: 1
@@ -97,9 +97,9 @@ MonoBehaviour:
   m_DeathClip: {fileID: 0}
   m_EnemyState: 0
   m_Target: {fileID: 0}
-  m_Score: 10
+  m_Score: 300
   m_PowerUp: []
-  m_DropRate: 10
+  m_DropRate: 33
   m_MinDistanceToPlayer: 1
 --- !u!212 &9135505032623328557
 SpriteRenderer:

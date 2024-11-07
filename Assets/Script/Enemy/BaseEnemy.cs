@@ -12,12 +12,12 @@ public class BaseEnemy : Plane
 
     public EnemyState m_EnemyState;
     [SerializeField]
-    protected GameObject m_Target;
+    public GameObject m_Target;
     [SerializeField]
     protected int m_Score = 10;
     [Header("PowerUp Settings")]
     [SerializeField]
-    protected GameObject[] m_PowerUp;
+    public GameObject[] m_PowerUp;
     [SerializeField]
     protected int m_DropRate = 10;
     protected ScreenWrapper m_ScreenWrapper;
@@ -117,6 +117,7 @@ public class BaseEnemy : Plane
         m_Collider = GetComponent<BoxCollider2D>();
         m_SpriteRenderer = GetComponent<SpriteRenderer>();
         m_BulletSpawn = transform.GetChild(0);
+        m_PowerUp = Resources.LoadAll<GameObject>("PowerUps");
         m_ShootClip = Resources.Load<AudioClip>($"Sound/Effects/Shoot");
         m_DeathClip = Resources.Load<AudioClip>($"Sound/Effects/Death");
         m_Target = GameObject.FindGameObjectWithTag("Player");
